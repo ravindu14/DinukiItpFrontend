@@ -43,7 +43,7 @@ type UpdateProductPageState = {
     supplierCode: string,
     size: string,
     price: string,
-    color: String,
+    color: string,
     quantity: string,
     storeLocation: string,
     margin: string

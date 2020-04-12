@@ -7,13 +7,19 @@ import product, { type ProductStateType } from "reducers/product";
 import employee, { type EmployeeStateType } from "reducers/employee";
 import supplier, { type SupplierStateType } from "reducers/supplier";
 import leave, { type LeaveStateType } from "reducers/leave";
+import sale, { type SaleStateType } from "reducers/sale";
+import customerReturn, {
+  type CustomerReturnStateType
+} from "reducers/customerReturn";
 
 export type ApplicationState = {
   auth: AuthStateType,
   product: ProductStateType,
   employee: EmployeeStateType,
   supplier: SupplierStateType,
-  leave: LeaveStateType
+  leave: LeaveStateType,
+  sale: SaleStateType,
+  customerReturn: CustomerReturnStateType
 };
 
 export default (history: History) =>
@@ -23,5 +29,7 @@ export default (history: History) =>
     employee,
     supplier,
     leave,
+    sale,
+    customerReturn,
     router: connectRouter(history)
   });

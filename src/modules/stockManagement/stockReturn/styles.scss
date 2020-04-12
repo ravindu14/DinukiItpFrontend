@@ -5,6 +5,9 @@
   padding: 20px 10px;
   .add-product-container {
     width: 60%;
+    .form-group {
+      margin-bottom: 20px;
+    }
     .form-input {
       input {
         border: 1px solid #e6e6e6 !important;

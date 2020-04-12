@@ -8,6 +8,8 @@ import { ProductService } from "./productService";
 import { EmployeeService } from "./employeeService";
 import { SupplierService } from "./supplierService";
 import { LeavesService } from "./leaveService";
+import { SaleService } from "./saleService";
+import { CustomerReturnService } from "./customerReturnService";
 
 export const registerServices = options => {
   registerGlobalServices(options);
@@ -40,6 +42,16 @@ export const registerServices = options => {
   serviceManager.register("LeavesService", serviceManager => {
     let api = serviceManager.get("ApiService");
     return new LeavesService(api);
+  });
+
+  serviceManager.register("SaleService", serviceManager => {
+    let api = serviceManager.get("ApiService");
+    return new SaleService(api);
+  });
+
+  serviceManager.register("CustomerReturnService", serviceManager => {
+    let api = serviceManager.get("ApiService");
+    return new CustomerReturnService(api);
   });
 };
 
