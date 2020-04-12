@@ -46,9 +46,7 @@ class Header extends PureComponent<HeaderProps, HeaderState> {
             {isAuthenticated && user ? (
               <div className="avatar">
                 <Icon icon="profile" />
-                <label>
-                  {user.user.firstName ? user.user.firstName : "Unknown"}
-                </label>
+                <label>{user.username ? user.username : "Unknown"}</label>
               </div>
             ) : (
               ""

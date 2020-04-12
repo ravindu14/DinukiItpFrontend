@@ -5,6 +5,13 @@
   padding: 20px 10px;
   .add-leave-container {
     width: 60%;
+    .form-group {
+      margin-bottom: 20px;
+      .selected-dropdown {
+        padding: 8px 10px !important;
+        min-height: 35px !important;
+      }
+    }
     .form-input {
       input {
         border: 1px solid #e6e6e6 !important;
@@ -34,6 +41,7 @@
   border: 1px solid #e4e4e4;
   padding: 20px 10px;
   .filter-container {
+    width: 90%;
     .field-label {
       font-size: 12px;
       text-align: right;
@@ -45,6 +53,7 @@
         border: 1px solid #e6e6e6 !important;
         border-radius: 5px;
         margin-bottom: 10px;
+        width: 175px;
       }
       textarea {
         border: 1px solid #e6e6e6;

@@ -48,18 +48,6 @@
           background-color: #fff3cd;
           border-color: #ffeeba;
         }
-        .react-tel-input {
-          input {
-            border: 1px solid #e8e8e8;
-            border-radius: 3px;
-            padding: 20px 50px;
-            width: 100%;
-          }
-          .tel-error {
-            border-color: #cc6363 !important;
-            box-shadow: 0 0 2px 1px #ffa3a3;
-          }
-        }
         .form-errors {
           list-style: none;
           text-align: left;
@@ -68,10 +56,15 @@
           color: #cc6363;
         }
       }
+      .selected-dropdown {
+        margin-bottom: 10px;
+      }
       input {
         border: 1px solid #e8e8e8;
         border-radius: 3px;
         padding: 13px 20px;
+        position: relative;
+        max-width: -webkit-fill-available;
       }
       .alert {
         margin-top: 20px;

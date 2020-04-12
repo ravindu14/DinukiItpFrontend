@@ -2,7 +2,6 @@
 import {
   ASYNC_AUTH_INIT,
   HANDLE_NOTIFICATION,
-  AUTH_SIGN_UP_SUCCESS,
   AUTH_SIGN_IN_SUCCESS,
   AUTH_SIGN_OUT_SUCCESS,
   AUTH_AUTHENTICATION_FAILURE
@@ -37,14 +36,11 @@ export function authSignUp(payload: Object) {
     authService
       .signUp(payload)
       .then(({ success, data }) => {
-        if (success) {
-          dispatch({ type: AUTH_SIGN_UP_SUCCESS, payload: data });
-        }
         dispatch(
           notificationHandler(
             success,
             success
-              ? "Please check your email"
+              ? "User registered successfully"
               : data.errorMessage
               ? data.errorMessage
               : "Something went wrong. Please try again"
@@ -61,62 +57,31 @@ export function authSignUp(payload: Object) {
 
 export function authSignIn(payload) {
   return (dispatch, getState, serviceManager) => {
-    dispatch({
-      type: AUTH_SIGN_IN_SUCCESS,
-      payload: {
-        user: { user: { firstName: "Ravindu", lastName: "Landekumbura" } }
-      }
-    });
-    // dispatch(asyncAuthInit());
+    dispatch(asyncAuthInit());
 
-    // let authService = serviceManager.get("AuthService");
+    let authService = serviceManager.get("AuthService");
 
-    // authService
-    //   .signIn(payload)
-    //   .then(({ success, data }) => {
-    //     if (success) {
-    //       const { token } = data;
-
-    //       serviceManager.get("ApiService").authToken = token;
-
-    //       authService
-    //         .getCurrentUser()
-    //         .then(({ success, data }) => {
-    //           if (success) {
-    //             dispatch({ type: AUTH_SIGN_IN_SUCCESS, payload: data });
-    //           } else {
-    //             dispatch(
-    //               notificationHandler(
-    //                 success,
-    //                 data.errorMessage
-    //                   ? data.errorMessage
-    //                   : "Something went wrong. Please try again"
-    //               )
-    //             );
-    //           }
-    //         })
-    //         .catch(() =>
-    //           dispatch(
-    //             notificationHandler(
-    //               false,
-    //               "Something went wrong. Please try again"
-    //             )
-    //           )
-    //         );
-    //     } else {
-    //       dispatch(
-    //         notificationHandler(false, "Username or password is incorrect")
-    //       );
-    //     }
-    //   })
-    //   .catch(({ message }) => {
-    //     dispatch(
-    //       notificationHandler(
-    //         false,
-    //         message ? message : "Something went wrong. Please try again"
-    //       )
-    //     );
-    //   });
+    authService
+      .signIn(payload)
+      .then(({ success, data }) => {
+        if (success) {
+          serviceManager.get("ApiService").authToken = data.token;
+          localStorage.setItem("token", data.token);
+          dispatch({ type: AUTH_SIGN_IN_SUCCESS, payload: data.user });
+        } else {
+          dispatch(
+            notificationHandler(false, "Username or password is incorrect")
+          );
+        }
+      })
+      .catch(({ message }) => {
+        dispatch(
+          notificationHandler(
+            false,
+            message ? message : "Something went wrong. Please try again"
+          )
+        );
+      });
   };
 }
 
@@ -126,47 +91,35 @@ export function isUserAuthenticated() {
 
     let authService = serviceManager.get("AuthService");
 
-    localStorage
-      .getItem("token")
-      .then(token => {
-        serviceManager.get("ApiService").authToken = token;
+    const token = localStorage.getItem("token");
 
-        authService
-          .getCurrentUser()
-          .then(({ success, data }) => {
-            if (success) {
-              dispatch({ type: AUTH_SIGN_IN_SUCCESS, payload: data });
-            } else {
-              dispatch(
-                notificationHandler(
-                  success,
-                  data.errorMessage
-                    ? data.errorMessage
-                    : "Something went wrong. Please try again"
-                )
-              );
-            }
-          })
-          .catch(() =>
-            dispatch(
-              notificationHandler(
-                false,
-                "Something went wrong. Please try again"
-              )
-            )
+    if (token) {
+      serviceManager.get("ApiService").authToken = token;
+
+      authService
+        .getCurrentUser()
+        .then(({ success, data }) => {
+          if (success) {
+            dispatch({ type: AUTH_SIGN_IN_SUCCESS, payload: data });
+          } else {
+            dispatch({ type: AUTH_AUTHENTICATION_FAILURE });
+            dispatch(notificationHandler(false, "Session Expired"));
+          }
+        })
+        .catch(({ message }) => {
+          dispatch(
+            notificationHandler(false, message ? message : "Session Expired")
           );
-      })
-      .catch(() => {
-        dispatch({ type: AUTH_AUTHENTICATION_FAILURE });
-      });
+        });
+    } else {
+      dispatch(notificationHandler(false, "Session Expired"));
+    }
   };
 }
 
 export function authSignOut() {
   return dispatch => {
-    // localStorage.removeItem("Token").then(() => {
-    //   dispatch({ type: AUTH_SIGN_OUT_SUCCESS });
-    // });
+    localStorage.removeItem("token");
     dispatch({ type: AUTH_SIGN_OUT_SUCCESS });
   };
 }

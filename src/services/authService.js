@@ -11,14 +11,14 @@ export class AuthService {
   }
 
   signUp(payload: Object = {}) {
-    return this.api.post(`${this.endpoint}/tenant/signUp`, payload);
+    return this.api.post(`${this.endpoint}/register`, payload);
   }
 
   signIn(payload: Object = {}) {
-    return this.api.post(`${this.endpoint}/signIn`, payload);
+    return this.api.post(`${this.endpoint}/login`, payload);
   }
 
   getCurrentUser() {
-    return this.api.get(`${this.endpoint}/user`);
+    return this.api.get(`${this.endpoint}/profile`);
   }
 }

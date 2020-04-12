@@ -1,0 +1,6 @@
+export const PREFIX = "@@leave/";
+
+export const ASYNC_LEAVE_INIT = `${PREFIX}ASYNC_LEAVE_INIT`;
+export const HANDLE_NOTIFICATION = `${PREFIX}HANDLE_NOTIFICATION`;
+
+export const GET_LEAVES_SUCCESS = `${PREFIX}GET_LEAVES_SUCCESS`;

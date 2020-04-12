@@ -33,7 +33,6 @@ class Routes extends PureComponent<RoutesProps> {
               <Switch>
                 {routes.map((route, i) => {
                   if (route.auth) {
-                    console.log(route.auth);
                     return (
                       <PrivateRoute
                         isAuthenticated={isAuthenticated}

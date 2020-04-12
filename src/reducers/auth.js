@@ -10,13 +10,9 @@ import { ASYNC_STATUS } from "constants/async";
 import {
   ASYNC_AUTH_INIT,
   HANDLE_NOTIFICATION,
-  AUTH_SIGN_UP_SUCCESS,
   AUTH_SIGN_IN_SUCCESS,
   AUTH_SIGN_OUT_SUCCESS,
-  AUTH_AUTHENTICATION_FAILURE,
-  GET_INVITED_USER_INFO_SUCCESS,
-  PASSWORD_RESET_SUCCESS,
-  RESET_PASSWORD_EMAIL_SENT_SUCCESS
+  AUTH_AUTHENTICATION_FAILURE
 } from "actionTypes/auth";
 
 export type AuthStateType = {
@@ -26,23 +22,17 @@ export type AuthStateType = {
   isUserInitiated: boolean,
   role: null | typeof USER_ROLES.ADMIN,
   isAuthSuccess: boolean,
-  isEmailSent: boolean,
-  isPasswordReset: boolean,
-  user: null | Object,
-  invitedUser: null | Object
+  user: null | Object
 };
 
 const initialState: AuthStateType = {
   status: ASYNC_STATUS.INIT,
   notification: null,
-  isAuthenticated: true,
+  isAuthenticated: false,
   isUserInitiated: true,
   role: USER_ROLES.ADMIN,
   isAuthSuccess: true,
-  isEmailSent: false,
-  user: null,
-  invitedUser: null,
-  isPasswordReset: false
+  user: null
 };
 
 function userInitiatedSuccess(state) {
@@ -79,21 +69,11 @@ export default (
       return asyncAuthInit(state);
     case HANDLE_NOTIFICATION:
       return handleNotification(state, payload);
-    case AUTH_SIGN_UP_SUCCESS:
-      return {
-        ...state,
-        isEmailSent: true,
-        isAuthSuccess: true,
-        isUserInitiated: true,
-        user: payload,
-        status: ASYNC_STATUS.SUCCESS
-      };
     case AUTH_SIGN_IN_SUCCESS:
       return {
         ...state,
         isAuthenticated: true,
         isAuthSuccess: true,
-        isUserInitiated: true,
         user: payload,
         status: ASYNC_STATUS.SUCCESS
       };
@@ -109,29 +89,7 @@ export default (
     case AUTH_AUTHENTICATION_FAILURE:
       return {
         ...state,
-        isAuthenticated: false,
-        user: null,
-        notification: null,
-        isUserInitiated: true,
-        status: ASYNC_STATUS.FAILURE
-      };
-    case GET_INVITED_USER_INFO_SUCCESS:
-      return {
-        ...state,
-        invitedUser: payload,
-        status: ASYNC_STATUS.SUCCESS
-      };
-    case RESET_PASSWORD_EMAIL_SENT_SUCCESS:
-      return {
-        ...state,
-        isEmailSent: true,
-        status: ASYNC_STATUS.SUCCESS
-      };
-    case PASSWORD_RESET_SUCCESS:
-      return {
-        ...state,
-        isPasswordReset: true,
-        status: ASYNC_STATUS.SUCCESS
+        isAuthenticated: false
       };
     default:
       return state;

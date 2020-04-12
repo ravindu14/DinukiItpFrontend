@@ -4,6 +4,10 @@ import {
 } from "shared/services/manager";
 import { AuthService } from "./authService";
 import { StorageService } from "./storageService";
+import { ProductService } from "./productService";
+import { EmployeeService } from "./employeeService";
+import { SupplierService } from "./supplierService";
+import { LeavesService } from "./leaveService";
 
 export const registerServices = options => {
   registerGlobalServices(options);
@@ -16,6 +20,26 @@ export const registerServices = options => {
   serviceManager.register("StorageService", serviceManager => {
     let api = serviceManager.get("ApiService");
     return new StorageService(api);
+  });
+
+  serviceManager.register("ProductService", serviceManager => {
+    let api = serviceManager.get("ApiService");
+    return new ProductService(api);
+  });
+
+  serviceManager.register("EmployeeService", serviceManager => {
+    let api = serviceManager.get("ApiService");
+    return new EmployeeService(api);
+  });
+
+  serviceManager.register("SupplierService", serviceManager => {
+    let api = serviceManager.get("ApiService");
+    return new SupplierService(api);
+  });
+
+  serviceManager.register("LeavesService", serviceManager => {
+    let api = serviceManager.get("ApiService");
+    return new LeavesService(api);
   });
 };
 

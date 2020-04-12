@@ -2,7 +2,7 @@ import React from "react";
 import ReactDOM from "react-dom";
 import { Provider } from "react-redux";
 
-//import { isUserAuthenticated } from "action/auth";
+import { isUserAuthenticated } from "action/auth";
 import { registerServices, serviceManager } from "services/manager";
 import * as serviceWorker from "./serviceWorker";
 import configureStore from "store";
@@ -12,7 +12,7 @@ import "./index.scss";
 
 const settings = {
   api: {
-    baseUrl: "http://bp-test-alb-1600345470.ap-southeast-2.elb.amazonaws.com/v1"
+    baseUrl: "http://localhost:8080/api"
   }
 };
 
@@ -20,7 +20,7 @@ registerServices(settings);
 
 const store = configureStore({}, serviceManager);
 
-//store.dispatch(isUserAuthenticated());
+store.dispatch(isUserAuthenticated());
 
 ReactDOM.render(
   <Provider store={store}>

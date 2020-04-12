@@ -8,14 +8,13 @@ import {
 import Input from "components/Input";
 import Icon from "components/icon";
 import Button from "components/button";
-import Row from "components/Row";
-import Col from "components/Col";
 import Alert from "components/Alert";
 
 import { ASYNC_STATUS } from "constants/async";
 import { AUTH_TYPE } from "constants/auth";
 import { hasWhiteSpace } from "shared/utils";
 import { isEmail } from "shared/kernel/cast";
+import Select from "components/Select";
 
 type SignUpPageProps = {
   status: AsyncStatusType,
@@ -27,29 +26,18 @@ type SignUpPageProps = {
 
 type SignUpPageState = {
   values: {
-    firstName: string,
-    lastName: string,
+    userName: string,
     email: string,
-    companyName: string,
-    country: string,
-    city: string,
-    phoneNumber: string,
-    baseCurrency: string,
-    industry: string,
+    gender: string,
+    employeeNo: string,
+    role: string,
     password: string,
-    repeatPassword: string,
-    role: string
+    repeatPassword: string
   },
   errors: {
-    firstName: null | string,
-    lastName: null | string,
+    userName: null | string,
     email: null | string,
-    companyName: null | string,
-    country: null | string,
-    city: null | string,
-    phoneNumber: null | string,
-    baseCurrency: null | string,
-    industry: null | string,
+    employeeNo: null | string,
     password: null | string,
     repeatPassword: null | string
   }
@@ -61,29 +49,18 @@ class SignUpPage extends Component<SignUpPageProps, SignUpPageState> {
 
     this.state = {
       values: {
-        firstName: "",
-        lastName: "",
+        userName: "",
         email: "",
-        companyName: "",
-        country: "",
-        city: "",
-        phoneNumber: "",
-        baseCurrency: "",
-        industry: "",
+        gender: "Male",
+        employeeNo: "",
+        role: "Admin",
         password: "",
-        repeatPassword: "",
-        role: "admin"
+        repeatPassword: ""
       },
       errors: {
-        firstName: null,
-        lastName: null,
+        userName: null,
         email: null,
-        companyName: null,
-        country: null,
-        city: null,
-        phoneNumber: null,
-        baseCurrency: null,
-        industry: null,
+        employeeNo: null,
         password: null,
         repeatPassword: null
       }
@@ -111,15 +88,9 @@ class SignUpPage extends Component<SignUpPageProps, SignUpPageState> {
   resetForm() {
     this.setState({
       errors: {
-        firstName: null,
-        lastName: null,
+        userName: null,
         email: null,
-        companyName: null,
-        country: null,
-        city: null,
-        phoneNumber: null,
-        baseCurrency: null,
-        industry: null,
+        employeeNo: null,
         password: null,
         repeatPassword: null
       }
@@ -128,31 +99,15 @@ class SignUpPage extends Component<SignUpPageProps, SignUpPageState> {
 
   validateForm() {
     const {
-      values: {
-        firstName,
-        lastName,
-        email,
-        companyName,
-        country,
-        city,
-        phoneNumber,
-        baseCurrency,
-        industry,
-        password,
-        repeatPassword
-      }
+      values: { userName, email, employeeNo, password, repeatPassword }
     } = this.state;
 
     let hasError = false;
 
     this.resetForm();
 
-    if (firstName === "") {
-      this.setFormErrors("firstName", "firstName is required.");
-      hasError = true;
-    }
-    if (lastName === "") {
-      this.setFormErrors("lastName", "lastName is required.");
+    if (userName === "") {
+      this.setFormErrors("userName", "userName is required.");
       hasError = true;
     }
     if (email === "") {
@@ -166,28 +121,8 @@ class SignUpPage extends Component<SignUpPageProps, SignUpPageState> {
       hasError = true;
     }
 
-    if (companyName === "") {
-      this.setFormErrors("companyName", "Company Name is required.");
-      hasError = true;
-    }
-    if (country === "") {
-      this.setFormErrors("country", "Country is required.");
-      hasError = true;
-    }
-    if (city === "") {
-      this.setFormErrors("city", "firstName is required.");
-      hasError = true;
-    }
-    if (phoneNumber === "") {
-      this.setFormErrors("phoneNumber", "Phone Number is required.");
-      hasError = true;
-    }
-    if (baseCurrency === "") {
-      this.setFormErrors("baseCurrency", "Base Currency is required.");
-      hasError = true;
-    }
-    if (industry === "") {
-      this.setFormErrors("industry", "industry is required.");
+    if (employeeNo === "") {
+      this.setFormErrors("employeeNo", "employeeNo Name is required.");
       hasError = true;
     }
 
@@ -213,33 +148,16 @@ class SignUpPage extends Component<SignUpPageProps, SignUpPageState> {
   onSubmitForm() {
     if (!this.validateForm()) {
       const {
-        values: {
-          firstName,
-          lastName,
-          email,
-          companyName,
-          country,
-          city,
-          phoneNumber,
-          baseCurrency,
-          industry,
-          password,
-          role
-        }
+        values: { userName, email, gender, employeeNo, role, password }
       } = this.state;
 
       this.props.onSignUpSubmit({
-        firstName,
-        lastName,
+        username: userName,
         email: email.toLowerCase(),
-        companyName,
-        country,
-        city,
-        phone: phoneNumber,
-        baseCurrency,
-        industry,
-        password,
-        role
+        gender,
+        employeeNumber: employeeNo,
+        role,
+        password
       });
     }
   }
@@ -279,32 +197,46 @@ class SignUpPage extends Component<SignUpPageProps, SignUpPageState> {
           <Alert type={notification.type}>{notification.message}</Alert>
         )}
         <form autoComplete="off">
-          <Row>
-            <Col sm={12} md={6}>
-              <div className="form-group">
-                <label>First Name</label>
-                <Input
-                  placeholder="Enter your first name"
-                  id="firstName"
-                  text={values.firstName}
-                  onChange={firstName => this.handleInputChange({ firstName })}
-                  error={errors.firstName}
-                />
-              </div>
-            </Col>
-            <Col sm={12} md={6}>
-              <div className="form-group">
-                <label>Last Name</label>
-                <Input
-                  placeholder="Enter your last name"
-                  id="lastName"
-                  text={values.lastName}
-                  onChange={lastName => this.handleInputChange({ lastName })}
-                  error={errors.lastName}
-                />
-              </div>
-            </Col>
-          </Row>
+          <div className="form-group">
+            <label>Username</label>
+            <Input
+              id="userName"
+              text={values.userName}
+              onChange={userName => this.handleInputChange({ userName })}
+              error={errors.userName}
+              autoComplete={false}
+            />
+          </div>
+          <div className="form-group">
+            <label>Gender</label>
+            <Select
+              id="gender"
+              options={["Male", "Female"]}
+              selected={values.gender}
+              onChange={gender => this.handleInputChange({ gender })}
+              autoComplete={false}
+            />
+          </div>
+          <div className="form-group">
+            <label>Employee Number</label>
+            <Input
+              id="employeeNumber"
+              text={values.employeeNo}
+              onChange={employeeNo => this.handleInputChange({ employeeNo })}
+              error={errors.employeeNo}
+              autoComplete={false}
+            />
+          </div>
+          <div className="form-group">
+            <label>Role</label>
+            <Select
+              id="role"
+              options={["Admin", "Store Keeper", "Cashier"]}
+              selected={values.role}
+              onChange={role => this.handleInputChange({ role })}
+              autoComplete={false}
+            />
+          </div>
           <div className="form-group">
             <label>Email</label>
             <Input
