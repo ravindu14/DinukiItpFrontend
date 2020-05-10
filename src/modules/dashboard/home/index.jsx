@@ -8,21 +8,21 @@ import Link from "components/Link";
 import "./styles.scss";
 
 type HomePageProps = {
-  user: Object
+  user: Object,
 };
 
 class HomePage extends Component<HomePageProps> {
   render() {
     const {
-      user: { role }
+      user: { role },
     } = this.props;
     return (
       <Layout>
         <div className="main-page">
           <div className="main-page-links">
             {role === "Admin" && (
-              <Link to={"cashier"}>
-                <div className="main-page-links-item">Cashier Management</div>
+              <Link to={"admin/users"}>
+                <div className="main-page-links-item">Admin Management</div>
               </Link>
             )}
             {(role === "Admin" || role === "Store Keeper") && (
@@ -33,8 +33,8 @@ class HomePage extends Component<HomePageProps> {
             {(role === "Admin" ||
               role === "Store Keeper" ||
               role === "Cashier") && (
-              <Link to={"admin/product/create"}>
-                <div className="main-page-links-item">Admin Management</div>
+              <Link to={"cashier"}>
+                <div className="main-page-links-item">Cashier Management</div>
               </Link>
             )}
           </div>
@@ -46,7 +46,7 @@ class HomePage extends Component<HomePageProps> {
 
 function mapStateToProps(state) {
   return {
-    user: state.auth.user
+    user: state.auth.user,
   };
 }
 

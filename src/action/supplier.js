@@ -2,13 +2,14 @@
 import {
   ASYNC_SUPPLIER_INIT,
   HANDLE_NOTIFICATION,
-  GET_SUPPLIERS_SUCCESS
+  GET_SUPPLIERS_SUCCESS,
+  GET_SUPPLIER_SUCCESS,
 } from "actionTypes/supplier";
 import Alert from "components/Alert";
 
 function asyncSupplierInit() {
   return {
-    type: ASYNC_SUPPLIER_INIT
+    type: ASYNC_SUPPLIER_INIT,
   };
 }
 
@@ -19,9 +20,9 @@ function notificationHandler(isSuccess, message) {
       isSuccess,
       notification: {
         type: isSuccess ? Alert.TYPE.SUCCESS : Alert.TYPE.ERROR,
-        message
-      }
-    }
+        message,
+      },
+    },
   };
 }
 
@@ -51,6 +52,32 @@ export function addSupplier(payload: Object) {
   };
 }
 
+export function updateSupplier(payload: Object) {
+  return (dispatch, getState, serviceManager) => {
+    dispatch(asyncSupplierInit());
+
+    let supplierService = serviceManager.get("SupplierService");
+
+    supplierService
+      .updateSupplier(payload)
+      .then(({ success }) => {
+        dispatch(
+          notificationHandler(
+            success,
+            success
+              ? "Supplier Updated Successfully"
+              : "Something went wrong. Please try again"
+          )
+        );
+      })
+      .catch(() => {
+        dispatch(
+          notificationHandler(false, "Something went wrong. Please try again")
+        );
+      });
+  };
+}
+
 export function getSuppliers(filter: Object) {
   return (dispatch, getState, serviceManager) => {
     dispatch(asyncSupplierInit());
@@ -62,6 +89,34 @@ export function getSuppliers(filter: Object) {
       .then(({ success, data }) => {
         if (success) {
           dispatch({ type: GET_SUPPLIERS_SUCCESS, payload: data.item });
+        } else {
+          dispatch(
+            notificationHandler(
+              success,
+              "Something went wrong. Please try again"
+            )
+          );
+        }
+      })
+      .catch(() => {
+        dispatch(
+          notificationHandler(false, "Something went wrong. Please try again")
+        );
+      });
+  };
+}
+
+export function getSupplier(supplierCode: string) {
+  return (dispatch, getState, serviceManager) => {
+    dispatch(asyncSupplierInit());
+
+    let supplierService = serviceManager.get("SupplierService");
+
+    supplierService
+      .getSupplier(supplierCode)
+      .then(({ success, data }) => {
+        if (success) {
+          dispatch({ type: GET_SUPPLIER_SUCCESS, payload: data });
         } else {
           dispatch(
             notificationHandler(

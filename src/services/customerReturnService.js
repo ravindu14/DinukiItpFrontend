@@ -25,4 +25,12 @@ export class CustomerReturnService {
   deleteCustomerReturn(returnId: string) {
     return this.api.delete(`${this.endpoint}/${returnId}`);
   }
+
+  updateCustomerReturn(payload: Object) {
+    return this.api.put(this.endpoint, payload);
+  }
+
+  getCustomerReturn(returnId: string) {
+    return this.api.get(`${this.endpoint}/${returnId}`);
+  }
 }

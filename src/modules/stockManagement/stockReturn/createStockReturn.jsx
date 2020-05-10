@@ -3,7 +3,7 @@ import React, { Component, Fragment } from "react";
 import { connect } from "react-redux";
 import {
   type AsyncStatusType,
-  type NotificationType
+  type NotificationType,
 } from "shared/types/General";
 
 import Layout from "components/inventoryLayout";
@@ -20,20 +20,24 @@ import { getProducts, notificationHandler, initProduct } from "action/product";
 import { filters } from "constants/user";
 import { serviceManager } from "services/manager";
 import { isNotEmpty } from "shared/utils";
-import { addCustomerReturn } from "action/customerReturn";
+import {
+  addCustomerReturn,
+  initializeCustomerReturn,
+} from "action/customerReturn";
 
 import "./styles.scss";
 
 type CreateReturnPageProps = {
   getProducts: Function,
   initProduct: Function,
+  initializeCustomerReturn: Function,
   notificationHandler: Function,
   status: AsyncStatusType,
   notification: NotificationType,
   products: Array<any>,
   addCustomerReturn: Function,
   returnStatus: AsyncStatusType,
-  returnNotification: NotificationType
+  returnNotification: NotificationType,
 };
 
 type CreateReturnPageState = {
@@ -47,12 +51,12 @@ type CreateReturnPageState = {
     quantity: string,
     returnQty: string,
     reason: string,
-    cashierId: string
+    cashierId: string,
   },
   errors: {
     returnQty: null | string,
-    cashierId: null | string
-  }
+    cashierId: null | string,
+  },
 };
 
 class CreateReturnPage extends Component<
@@ -73,12 +77,12 @@ class CreateReturnPage extends Component<
         quantity: "",
         returnQty: "",
         reason: "",
-        cashierId: ""
+        cashierId: "",
       },
       errors: {
         returnQty: null,
-        cashierId: null
-      }
+        cashierId: null,
+      },
     };
     // $FlowFixMe
     this.onChangeFormField = this.onChangeFormField.bind(this);
@@ -97,6 +101,7 @@ class CreateReturnPage extends Component<
   }
 
   componentDidMount() {
+    this.props.initializeCustomerReturn();
     let customerReturnService = serviceManager.get("CustomerReturnService");
 
     customerReturnService
@@ -105,7 +110,7 @@ class CreateReturnPage extends Component<
         if (success) {
           this.setState({
             ...this.state,
-            customerReturnId: returnId
+            customerReturnId: returnId,
           });
         }
       });
@@ -125,8 +130,8 @@ class CreateReturnPage extends Component<
         quantity: "",
         returnQty: "",
         reason: "",
-        cashierId: ""
-      }
+        cashierId: "",
+      },
     }));
   }
 
@@ -134,13 +139,16 @@ class CreateReturnPage extends Component<
     this.resetFormErrors();
 
     const {
-      form: { quantity, returnQty, cashierId }
+      form: { quantity, returnQty, cashierId },
     } = this.state;
 
     let hasError = false;
 
     if (returnQty === "") {
       this.setFormErrors("returnQty", "Quantity is required.");
+      hasError = true;
+    } else if (/\D/.test(returnQty)) {
+      this.setFormErrors("returnQty", "Quantity is invalid.");
       hasError = true;
     } else if (quantity < returnQty) {
       this.setFormErrors("returnQty", "No enough products to return.");
@@ -160,8 +168,8 @@ class CreateReturnPage extends Component<
       ...this.state,
       errors: {
         returnQty: null,
-        cashierId: null
-      }
+        cashierId: null,
+      },
     });
   }
 
@@ -170,8 +178,8 @@ class CreateReturnPage extends Component<
       return {
         errors: {
           ...errors,
-          [field]: message
-        }
+          [field]: message,
+        },
       };
     });
   }
@@ -180,17 +188,17 @@ class CreateReturnPage extends Component<
     this.setState(({ form }) => ({
       form: {
         ...form,
-        ...value
-      }
+        ...value,
+      },
     }));
   }
 
   onSearchProduct() {
     const {
-      form: { productCode }
+      form: { productCode },
     } = this.state;
     const { products, initProduct } = this.props;
-
+    this.props.initializeCustomerReturn();
     initProduct();
 
     const filteredProduct =
@@ -207,7 +215,7 @@ class CreateReturnPage extends Component<
                 size,
                 price,
                 color,
-                quantity
+                quantity,
               };
             }
           )
@@ -217,8 +225,8 @@ class CreateReturnPage extends Component<
       this.setState(({ form }) => ({
         form: {
           ...form,
-          ...selectedProduct[0]
-        }
+          ...selectedProduct[0],
+        },
       }));
     } else {
       this.props.notificationHandler(false, "Product not found");
@@ -235,8 +243,8 @@ class CreateReturnPage extends Component<
         color,
         returnQty,
         reason,
-        cashierId
-      }
+        cashierId,
+      },
     } = this.state;
 
     if (!this.validateForm()) {
@@ -249,7 +257,7 @@ class CreateReturnPage extends Component<
         quantity: returnQty,
         reason,
         cashierId,
-        date: new Date()
+        date: new Date(),
       });
     }
   }
@@ -265,16 +273,16 @@ class CreateReturnPage extends Component<
         quantity,
         returnQty,
         reason,
-        cashierId
+        cashierId,
       },
-      errors
+      errors,
     } = this.state;
 
     const {
       notification,
       status,
       returnStatus,
-      returnNotification
+      returnNotification,
     } = this.props;
 
     return (
@@ -314,7 +322,7 @@ class CreateReturnPage extends Component<
                       <Input
                         id="productCode"
                         text={productCode}
-                        onChange={productCode =>
+                        onChange={(productCode) =>
                           this.onChangeFormField({ productCode })
                         }
                       />
@@ -402,7 +410,7 @@ class CreateReturnPage extends Component<
                       <Input
                         id="returnQty"
                         text={returnQty}
-                        onChange={returnQty =>
+                        onChange={(returnQty) =>
                           this.onChangeFormField({ returnQty })
                         }
                         error={errors.returnQty}
@@ -423,7 +431,9 @@ class CreateReturnPage extends Component<
                         placeholder="select"
                         selected={reason}
                         options={["Damaged", "Return"]}
-                        onChange={reason => this.onChangeFormField({ reason })}
+                        onChange={(reason) =>
+                          this.onChangeFormField({ reason })
+                        }
                       />
                     </Col>
                   </Row>
@@ -439,7 +449,7 @@ class CreateReturnPage extends Component<
                       <Input
                         id="cashierId"
                         text={cashierId}
-                        onChange={cashierId =>
+                        onChange={(cashierId) =>
                           this.onChangeFormField({ cashierId })
                         }
                       />
@@ -461,7 +471,7 @@ function mapStateToProps(state) {
     notification: state.product.notification,
     products: state.product.products,
     returnStatus: state.customerReturn.status,
-    returnNotification: state.customerReturn.notification
+    returnNotification: state.customerReturn.notification,
   };
 }
 
@@ -469,7 +479,8 @@ const Actions = {
   getProducts,
   notificationHandler,
   initProduct,
-  addCustomerReturn
+  addCustomerReturn,
+  initializeCustomerReturn,
 };
 
 export default connect(mapStateToProps, Actions)(CreateReturnPage);

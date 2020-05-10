@@ -3,7 +3,7 @@ import React, { Component } from "react";
 import { connect } from "react-redux";
 import {
   type AsyncStatusType,
-  type NotificationType
+  type NotificationType,
 } from "shared/types/General";
 
 import Layout from "components/mainLayout";
@@ -17,6 +17,9 @@ import Loader from "components/loader";
 import uuid from "uuid";
 import Icon from "components/icon";
 import Select from "components/Select";
+import { confirmAlert } from "react-confirm-alert";
+import "react-confirm-alert/src/react-confirm-alert.css";
+import ReactHTMLTableToExcel from "react-html-table-to-excel";
 
 import { isNotEmpty, isEmpty } from "shared/utils";
 import { ASYNC_STATUS } from "constants/async";
@@ -44,7 +47,7 @@ type UpdateProductPageProps = {
   saleNotification: NotificationType,
   getSales: Function,
   deleteSaleOrder: Function,
-  sales: Array<any>
+  sales: Array<any>,
 };
 
 type UpdateProductPageState = {
@@ -58,31 +61,31 @@ type UpdateProductPageState = {
     quantity: string,
     sellQty: string,
     discount: string,
-    lineTotal: string
+    lineTotal: string,
   },
   order: {
     netTotal: string,
     cashier: string,
     salesPerson: string,
     customerPayment: string,
-    customerBalance: string
+    customerBalance: string,
   },
   orderErrors: {
     cashier: null | string,
     salesPerson: null | string,
     customerPayment: null | string,
-    customerBalance: null | string
+    customerBalance: null | string,
   },
   purchasedProducts: Array<any>,
   errors: {
     sellQty: null | string,
-    lineTotal: null | string
+    lineTotal: null | string,
   },
   viewSales: {
     viewCashierId: string,
     viewSalesPersonId: string,
-    viewDate: string
-  }
+    viewDate: string,
+  },
 };
 class CashierPage extends Component<
   UpdateProductPageProps,
@@ -102,33 +105,36 @@ class CashierPage extends Component<
         quantity: "",
         sellQty: "",
         discount: "0",
-        lineTotal: ""
+        lineTotal: "",
       },
       purchasedProducts: [],
       errors: {
         sellQty: null,
-        lineTotal: null
+        lineTotal: null,
       },
       order: {
         netTotal: "",
         cashier: "",
         salesPerson: "",
         customerPayment: "",
-        customerBalance: ""
+        customerBalance: "",
       },
       orderErrors: {
         cashier: null,
         salesPerson: null,
         customerPayment: null,
-        customerBalance: null
+        customerBalance: null,
       },
       viewSales: {
         viewCashierId: "",
         viewSalesPersonId: "",
-        viewDate: ""
-      }
+        viewDate: "",
+      },
     };
-
+    // $FlowFixMe
+    this.confirmationDelete = this.confirmationDelete.bind(this);
+    // $FlowFixMe
+    this.confirmationMessage = this.confirmationMessage.bind(this);
     // $FlowFixMe
     this.onChangeFormField = this.onChangeFormField.bind(this);
     // $FlowFixMe
@@ -172,7 +178,7 @@ class CashierPage extends Component<
       if (success) {
         this.setState({
           ...this.state,
-          saleId: orderNumber
+          saleId: orderNumber,
         });
       }
     });
@@ -183,7 +189,7 @@ class CashierPage extends Component<
 
   onSearchProduct() {
     const {
-      product: { productCode }
+      product: { productCode },
     } = this.state;
     const { products, initProduct } = this.props;
 
@@ -203,7 +209,7 @@ class CashierPage extends Component<
                 size,
                 price,
                 color,
-                quantity
+                quantity,
               };
             }
           )
@@ -213,8 +219,8 @@ class CashierPage extends Component<
       this.setState(({ product }) => ({
         product: {
           ...product,
-          ...selectedProduct[0]
-        }
+          ...selectedProduct[0],
+        },
       }));
     } else {
       this.props.notificationHandler(false, "Product not found");
@@ -225,7 +231,7 @@ class CashierPage extends Component<
     this.resetFormErrors();
 
     const {
-      product: { sellQty, lineTotal, quantity }
+      product: { sellQty, lineTotal, quantity },
     } = this.state;
 
     let hasError = false;
@@ -253,8 +259,8 @@ class CashierPage extends Component<
       ...this.state,
       errors: {
         sellQty: null,
-        lineTotal: null
-      }
+        lineTotal: null,
+      },
     });
   }
 
@@ -263,8 +269,8 @@ class CashierPage extends Component<
       return {
         errors: {
           ...errors,
-          [field]: message
-        }
+          [field]: message,
+        },
       };
     });
   }
@@ -273,8 +279,8 @@ class CashierPage extends Component<
     this.setState(({ product }) => ({
       product: {
         ...product,
-        ...value
-      }
+        ...value,
+      },
     }));
   }
 
@@ -282,14 +288,14 @@ class CashierPage extends Component<
     this.setState(({ order }) => ({
       order: {
         ...order,
-        ...value
-      }
+        ...value,
+      },
     }));
   }
 
   calculateLineTotal() {
     const {
-      product: { price, sellQty, discount }
+      product: { price, sellQty, discount },
     } = this.state;
 
     if (isNotEmpty(sellQty)) {
@@ -302,8 +308,8 @@ class CashierPage extends Component<
       this.setState(({ product }) => ({
         product: {
           ...product,
-          lineTotal: total
-        }
+          lineTotal: total,
+        },
       }));
     }
   }
@@ -320,8 +326,8 @@ class CashierPage extends Component<
         quantity: "",
         sellQty: "",
         discount: "0",
-        lineTotal: ""
-      }
+        lineTotal: "",
+      },
     }));
   }
 
@@ -331,20 +337,39 @@ class CashierPage extends Component<
       const updatedProducts =
         purchasedProducts.length > 0
           ? [
-              ...purchasedProducts.map(item => item),
-              { id: uuid.v4(), ...product }
+              ...purchasedProducts.map((item) => item),
+              { id: uuid.v4(), ...product },
             ]
           : [{ id: uuid.v4(), ...product }];
 
       this.setState(
         {
           ...this.state,
-          purchasedProducts: updatedProducts
+          purchasedProducts: updatedProducts,
         },
         this.calculateNetTotal
       );
       this.resetProduct();
     }
+  }
+
+  confirmationMessage(productId) {
+    confirmAlert({
+      title: "Confirm",
+      message: "Are you sure to delete this?",
+      buttons: [
+        {
+          label: "Yes",
+          onClick: () => {
+            this.onDeleteTableItem(productId);
+          },
+        },
+        {
+          label: "No",
+          onClick: () => {},
+        },
+      ],
+    });
   }
 
   onDeleteTableItem(productId) {
@@ -357,7 +382,7 @@ class CashierPage extends Component<
     this.setState(
       {
         ...this.state,
-        purchasedProducts: updatedProducts
+        purchasedProducts: updatedProducts,
       },
       this.calculateNetTotal
     );
@@ -377,14 +402,14 @@ class CashierPage extends Component<
     this.setState(({ order }) => ({
       order: {
         ...order,
-        netTotal: parseFloat(total).toFixed(2)
-      }
+        netTotal: parseFloat(total).toFixed(2),
+      },
     }));
   }
 
   setCustomerBalance() {
     const {
-      order: { customerPayment, netTotal }
+      order: { customerPayment, netTotal },
     } = this.state;
 
     this.setState(({ order }) => ({
@@ -392,8 +417,8 @@ class CashierPage extends Component<
         ...order,
         customerBalance: (
           parseFloat(netTotal) - parseFloat(customerPayment)
-        ).toFixed(2)
-      }
+        ).toFixed(2),
+      },
     }));
   }
 
@@ -401,7 +426,7 @@ class CashierPage extends Component<
     const {
       saleId,
       order: { netTotal, cashier, salesPerson },
-      purchasedProducts
+      purchasedProducts,
     } = this.state;
 
     this.props.addSaleOrder({
@@ -411,21 +436,40 @@ class CashierPage extends Component<
       total: netTotal,
       cashierId: cashier,
       salesPersonId: salesPerson,
-      products: purchasedProducts
+      products: purchasedProducts,
     });
 
     this.resetAfterSale();
   }
 
+  confirmationDelete(saleId) {
+    confirmAlert({
+      title: "Confirm",
+      message: "Are you sure to delete this?",
+      buttons: [
+        {
+          label: "Yes",
+          onClick: () => {
+            this.deleteSaleOrder(saleId);
+          },
+        },
+        {
+          label: "No",
+          onClick: () => {},
+        },
+      ],
+    });
+  }
+
   deleteSaleOrder(saleId) {
     const {
-      viewSales: { viewCashierId, viewSalesPersonId, viewDate }
+      viewSales: { viewCashierId, viewSalesPersonId, viewDate },
     } = this.state;
 
     const viewSales = {
       cashierId: viewCashierId,
       salesPersonId: viewSalesPersonId,
-      date: viewDate
+      date: viewDate,
     };
 
     let filteredQuery = {};
@@ -443,8 +487,8 @@ class CashierPage extends Component<
     this.setState(({ viewSales }) => ({
       viewSales: {
         ...viewSales,
-        ...field
-      }
+        ...field,
+      },
     }));
   }
 
@@ -465,26 +509,26 @@ class CashierPage extends Component<
             quantity: "",
             sellQty: "",
             discount: "0",
-            lineTotal: ""
+            lineTotal: "",
           },
           purchasedProducts: [],
           errors: {
             sellQty: null,
-            lineTotal: null
+            lineTotal: null,
           },
           order: {
             netTotal: "",
             cashier: "",
             salesPerson: "",
             customerPayment: "",
-            customerBalance: ""
+            customerBalance: "",
           },
           orderErrors: {
             cashier: null,
             salesPerson: null,
             customerPayment: null,
-            customerBalance: null
-          }
+            customerBalance: null,
+          },
         });
       }
     });
@@ -492,13 +536,13 @@ class CashierPage extends Component<
 
   onViewSalesOrders() {
     const {
-      viewSales: { viewCashierId, viewSalesPersonId, viewDate }
+      viewSales: { viewCashierId, viewSalesPersonId, viewDate },
     } = this.state;
 
     const viewSales = {
       cashierId: viewCashierId,
       salesPersonId: viewSalesPersonId,
-      date: viewDate
+      date: viewDate,
     };
 
     let filteredQuery = {};
@@ -523,7 +567,7 @@ class CashierPage extends Component<
         color,
         sellQty,
         discount,
-        lineTotal
+        lineTotal,
       },
       purchasedProducts,
       order: {
@@ -531,10 +575,10 @@ class CashierPage extends Component<
         cashier,
         salesPerson,
         customerBalance,
-        customerPayment
+        customerPayment,
       },
       orderErrors,
-      viewSales: { viewCashierId, viewSalesPersonId, viewDate }
+      viewSales: { viewCashierId, viewSalesPersonId, viewDate },
     } = this.state;
 
     const {
@@ -544,7 +588,7 @@ class CashierPage extends Component<
       employees,
       saleStatus,
       saleNotification,
-      sales
+      sales,
     } = this.props;
 
     const employeeOptions = [...employees.map(({ employeeId }) => employeeId)];
@@ -581,7 +625,7 @@ class CashierPage extends Component<
                                   <Input
                                     id="productCode"
                                     text={productCode}
-                                    onChange={productCode =>
+                                    onChange={(productCode) =>
                                       this.onChangeFormField({ productCode })
                                     }
                                   />
@@ -639,7 +683,7 @@ class CashierPage extends Component<
                                     id="sellQty"
                                     type="number"
                                     text={sellQty}
-                                    onChange={sellQty =>
+                                    onChange={(sellQty) =>
                                       this.onChangeFormField({ sellQty })
                                     }
                                     onBlur={this.calculateLineTotal}
@@ -655,7 +699,7 @@ class CashierPage extends Component<
                                     id="discount"
                                     type="number"
                                     text={discount}
-                                    onChange={discount =>
+                                    onChange={(discount) =>
                                       this.onChangeFormField({ discount })
                                     }
                                     onBlur={this.calculateLineTotal}
@@ -704,7 +748,7 @@ class CashierPage extends Component<
                                     <th>Action</th>
                                   </tr>
                                   {purchasedProducts.length > 0 &&
-                                    purchasedProducts.map(product => {
+                                    purchasedProducts.map((product) => {
                                       return (
                                         <tr key={product.id}>
                                           <td>{product.productCode}</td>
@@ -717,7 +761,7 @@ class CashierPage extends Component<
                                             <Button
                                               type={Button.TYPE.DANGER}
                                               onClick={() =>
-                                                this.onDeleteTableItem(
+                                                this.confirmationMessage(
                                                   product.id
                                                 )
                                               }
@@ -751,7 +795,7 @@ class CashierPage extends Component<
                                   options={employeeOptions}
                                   placeholder="select"
                                   selected={cashier}
-                                  onChange={cashier =>
+                                  onChange={(cashier) =>
                                     this.onChangeOrderField({ cashier })
                                   }
                                   error={orderErrors.cashier}
@@ -768,7 +812,7 @@ class CashierPage extends Component<
                                   options={employeeOptions}
                                   placeholder="select"
                                   selected={salesPerson}
-                                  onChange={salesPerson =>
+                                  onChange={(salesPerson) =>
                                     this.onChangeOrderField({ salesPerson })
                                   }
                                   error={orderErrors.salesPerson}
@@ -784,7 +828,7 @@ class CashierPage extends Component<
                                   id="customerPayment"
                                   type="number"
                                   text={customerPayment}
-                                  onChange={customerPayment =>
+                                  onChange={(customerPayment) =>
                                     this.onChangeOrderField({ customerPayment })
                                   }
                                   error={orderErrors.customerPayment}
@@ -816,7 +860,7 @@ class CashierPage extends Component<
                         </Col>
                       </Row>
                     </div>
-                  )
+                  ),
                 },
                 {
                   title: "My Sales",
@@ -835,9 +879,9 @@ class CashierPage extends Component<
                                   options={employeeOptions}
                                   placeholder="select"
                                   selected={viewCashierId}
-                                  onChange={viewCashierId =>
+                                  onChange={(viewCashierId) =>
                                     this.onChangeSalesFilterField({
-                                      viewCashierId
+                                      viewCashierId,
                                     })
                                   }
                                 />
@@ -854,7 +898,7 @@ class CashierPage extends Component<
                                   id="viewSaleDate"
                                   type="date"
                                   text={viewDate}
-                                  onChange={viewDate =>
+                                  onChange={(viewDate) =>
                                     this.onChangeSalesFilterField({ viewDate })
                                   }
                                 />
@@ -872,9 +916,9 @@ class CashierPage extends Component<
                                   options={employeeOptions}
                                   placeholder="select"
                                   selected={viewSalesPersonId}
-                                  onChange={viewSalesPersonId =>
+                                  onChange={(viewSalesPersonId) =>
                                     this.onChangeSalesFilterField({
-                                      viewSalesPersonId
+                                      viewSalesPersonId,
                                     })
                                   }
                                 />
@@ -885,12 +929,22 @@ class CashierPage extends Component<
                             <Button onClick={this.onViewSalesOrders}>
                               Search
                             </Button>
+                            {sales.length > 0 && (
+                              <ReactHTMLTableToExcel
+                                id="test-table-xls-button"
+                                className="download-table-xls-button"
+                                table="dataTable"
+                                filename="Sales Report"
+                                sheet="sales_report"
+                                buttonText="Generate Report"
+                              />
+                            )}
                           </Col>
                         </Row>
                       </div>
                       <div className="table-container">
                         <div className="table-section">
-                          <table>
+                          <table id="dataTable">
                             <tbody>
                               <tr className="table-heading">
                                 <th>Sale Id</th>
@@ -901,7 +955,7 @@ class CashierPage extends Component<
                                 <th>Action</th>
                               </tr>
                               {sales.length > 0 &&
-                                sales.map(sale => {
+                                sales.map((sale) => {
                                   return (
                                     <tr key={sale.saleId}>
                                       <td>{sale.saleId}</td>
@@ -913,7 +967,7 @@ class CashierPage extends Component<
                                         <Button
                                           type={Button.TYPE.DANGER}
                                           onClick={() =>
-                                            this.deleteSaleOrder(sale.saleId)
+                                            this.confirmationDelete(sale.saleId)
                                           }
                                         >
                                           Delete
@@ -927,8 +981,8 @@ class CashierPage extends Component<
                         </div>
                       </div>
                     </div>
-                  )
-                }
+                  ),
+                },
               ]}
             />
           </div>
@@ -948,7 +1002,7 @@ function mapStateToProps(state) {
     employees: state.employee.employees,
     saleStatus: state.sale.status,
     saleNotification: state.sale.notification,
-    sales: state.sale.sales
+    sales: state.sale.sales,
   };
 }
 
@@ -959,7 +1013,7 @@ const Actions = {
   getEmployees,
   addSaleOrder,
   getSales,
-  deleteSaleOrder
+  deleteSaleOrder,
 };
 
 export default connect(mapStateToProps, Actions)(CashierPage);

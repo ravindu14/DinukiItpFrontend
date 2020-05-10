@@ -3,17 +3,18 @@ import React, { Component, Fragment } from "react";
 import { connect } from "react-redux";
 import {
   type AsyncStatusType,
-  type NotificationType
+  type NotificationType,
 } from "shared/types/General";
 
-import Layout from "components/adminLayout";
+import Layout from "components/inventoryLayout";
 import Button from "components/button";
-import Row from "components/Row";
-import Col from "components/Col";
-import Input from "components/Input";
 import Loader from "components/loader";
 import Alert from "components/Alert";
+import { confirmAlert } from "react-confirm-alert";
+import "react-confirm-alert/src/react-confirm-alert.css";
+import ReactHTMLTableToExcel from "react-html-table-to-excel";
 
+import { Link } from "react-router-dom";
 import { ASYNC_STATUS } from "constants/async";
 import { getProducts, deleteProduct } from "action/product";
 import { filters } from "constants/user";
@@ -25,7 +26,7 @@ type AdminViewProductPageProps = {
   deleteProduct: Function,
   status: AsyncStatusType,
   notification: NotificationType,
-  products: Array<any>
+  products: Array<any>,
 };
 
 type AdminViewProductPageState = {
@@ -33,8 +34,8 @@ type AdminViewProductPageState = {
     supplier: string,
     size: string,
     color: string,
-    storeLocation: string
-  }
+    storeLocation: string,
+  },
 };
 
 class AdminViewProductPage extends Component<
@@ -44,17 +45,8 @@ class AdminViewProductPage extends Component<
   constructor(props) {
     super(props);
 
-    this.state = {
-      filters: {
-        supplier: "",
-        size: "",
-        color: "",
-        storeLocation: ""
-      }
-    };
-
     // $FlowFixMe
-    this.onChangeFilterField = this.onChangeFilterField.bind(this);
+    this.confirmationMessage = this.confirmationMessage.bind(this);
     // $FlowFixMe
     this.resetProductFilter = this.resetProductFilter.bind(this);
     // $FlowFixMe
@@ -65,6 +57,25 @@ class AdminViewProductPage extends Component<
     this.props.getProducts({ ...filters });
   }
 
+  confirmationMessage(orderNumber) {
+    confirmAlert({
+      title: "Confirm",
+      message: "Are you sure to delete this?",
+      buttons: [
+        {
+          label: "Yes",
+          onClick: () => {
+            this.deleteProduct(orderNumber);
+          },
+        },
+        {
+          label: "No",
+          onClick: () => {},
+        },
+      ],
+    });
+  }
+
   resetProductFilter() {
     this.setState(({ filters }) => ({
       filters: {
@@ -72,17 +83,8 @@ class AdminViewProductPage extends Component<
         supplier: "",
         size: "",
         color: "",
-        storeLocation: ""
-      }
-    }));
-  }
-
-  onChangeFilterField(value) {
-    this.setState(({ form }) => ({
-      filters: {
-        ...form,
-        ...value
-      }
+        storeLocation: "",
+      },
     }));
   }
 
@@ -91,10 +93,6 @@ class AdminViewProductPage extends Component<
   }
 
   render() {
-    const {
-      filters: { supplier, storeLocation, size, color }
-    } = this.state;
-
     const { status, notification, products } = this.props;
 
     return (
@@ -102,12 +100,14 @@ class AdminViewProductPage extends Component<
         breadcrumbs={["View Products"]}
         actions={
           <Fragment>
-            <Button type={Button.TYPE.DANGER} onClick={this.resetProductFilter}>
-              Reset
-            </Button>
-            <Button type={Button.TYPE.SUCCESS} onClick={() => {}}>
-              Search
-            </Button>
+            <ReactHTMLTableToExcel
+              id="test-table-xls-button"
+              className="download-table-xls-button"
+              table="dataTable"
+              filename="Product Report"
+              sheet="product_report"
+              buttonText="Generate Report"
+            />
           </Fragment>
         }
       >
@@ -118,73 +118,9 @@ class AdminViewProductPage extends Component<
           <Loader isLoading />
         ) : (
           <div className="view-product">
-            <div className="filter-container">
-              <Row>
-                <Col>
-                  <Row>
-                    <Col className="field-label" sm={12} md={6}>
-                      Supplier
-                    </Col>
-                    <Col sm={12} md={6}>
-                      <Input
-                        id="supplier"
-                        text={supplier}
-                        onChange={supplier =>
-                          this.onChangeFilterField({ supplier })
-                        }
-                      />
-                    </Col>
-                  </Row>
-                </Col>
-                <Col>
-                  <Row>
-                    <Col className="field-label" sm={12} md={6}>
-                      Size
-                    </Col>
-                    <Col sm={12} md={6}>
-                      <Input
-                        id="size"
-                        text={size}
-                        onChange={size => this.onChangeFilterField({ size })}
-                      />
-                    </Col>
-                  </Row>
-                </Col>
-                <Col>
-                  <Row>
-                    <Col className="field-label" sm={12} md={6}>
-                      Color
-                    </Col>
-                    <Col sm={12} md={6}>
-                      <Input
-                        id="color"
-                        text={color}
-                        onChange={color => this.onChangeFilterField({ color })}
-                      />
-                    </Col>
-                  </Row>
-                </Col>
-                <Col>
-                  <Row>
-                    <Col className="field-label" sm={12} md={6}>
-                      Store Location
-                    </Col>
-                    <Col sm={12} md={6}>
-                      <Input
-                        id="storeLocation"
-                        text={storeLocation}
-                        onChange={storeLocation =>
-                          this.onChangeFilterField({ storeLocation })
-                        }
-                      />
-                    </Col>
-                  </Row>
-                </Col>
-              </Row>
-            </div>
             <div className="table-container">
               <div className="table-section">
-                <table>
+                <table id="dataTable">
                   <tbody>
                     <tr className="table-heading">
                       <th>Product Code</th>
@@ -199,10 +135,21 @@ class AdminViewProductPage extends Component<
                       <th>Action</th>
                     </tr>
                     {products.length > 0 &&
-                      products.map(product => {
+                      products.map((product) => {
                         return (
-                          <tr key={product.productCode}>
-                            <td>{product.productCode}</td>
+                          <tr
+                            key={product.productCode}
+                            className={`${
+                              product.margin > product.quantity ? "low" : "high"
+                            }`}
+                          >
+                            <td>
+                              <Link
+                                to={`/product/update/${product.productCode}`}
+                              >
+                                {product.productCode}
+                              </Link>
+                            </td>
                             <td>{product.productName}</td>
                             <td>{product.supplierCode}</td>
                             <td>{product.size}</td>
@@ -213,9 +160,15 @@ class AdminViewProductPage extends Component<
                             <td>{product.storeLocation}</td>
                             <td>
                               <Button
+                                htmlType={Button.HTML_TYPE.LINK}
+                                link={"/orders/create"}
+                              >
+                                Refill
+                              </Button>
+                              <Button
                                 type={Button.TYPE.DANGER}
                                 onClick={() =>
-                                  this.deleteProduct(product.productCode)
+                                  this.confirmationMessage(product.productCode)
                                 }
                               >
                                 Delete
@@ -239,13 +192,13 @@ function mapStateToProps(state) {
   return {
     status: state.product.status,
     notification: state.product.notification,
-    products: state.product.products
+    products: state.product.products,
   };
 }
 
 const Actions = {
   getProducts,
-  deleteProduct
+  deleteProduct,
 };
 
 export default connect(mapStateToProps, Actions)(AdminViewProductPage);

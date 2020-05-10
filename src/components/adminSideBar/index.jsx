@@ -15,20 +15,16 @@ export default function sidebar() {
       </div>
       <div className="menu">
         <SubMenu
-          title="Inventory"
+          title="Users"
           icon="inventory"
-          items={[
-            { title: "Add New Product", link: "/admin/product/create" },
-            { title: "View Product", link: "/admin/products" },
-            { title: "Stock Counts", link: "/admin/stockCounts" }
-          ]}
+          items={[{ title: "View Users", link: "/admin/users" }]}
         />
         <SubMenu
           title="Employee"
           icon="person"
           items={[
             { title: "Add Employee", link: "/admin/employee/create" },
-            { title: "View Employees", link: "/admin/employees" }
+            { title: "View Employees", link: "/admin/employees" },
           ]}
         />
         <SubMenu
@@ -36,7 +32,7 @@ export default function sidebar() {
           icon="tag"
           items={[
             { title: "Apply Leave", link: "/admin/leaves/add" },
-            { title: "Applied Leaves", link: "/admin/leaves" }
+            { title: "Applied Leaves", link: "/admin/leaves" },
           ]}
         />
         <SubMenu
@@ -49,7 +45,7 @@ export default function sidebar() {
           icon="lorry"
           items={[
             { title: "Add New Supplier", link: "/admin/supplier/create" },
-            { title: "View Suppliers", link: "/admin/suppliers" }
+            { title: "View Suppliers", link: "/admin/suppliers" },
           ]}
         />
       </div>

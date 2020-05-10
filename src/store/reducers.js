@@ -9,8 +9,10 @@ import supplier, { type SupplierStateType } from "reducers/supplier";
 import leave, { type LeaveStateType } from "reducers/leave";
 import sale, { type SaleStateType } from "reducers/sale";
 import customerReturn, {
-  type CustomerReturnStateType
+  type CustomerReturnStateType,
 } from "reducers/customerReturn";
+import user, { type UserStateType } from "reducers/user";
+import order, { type OrdersStateType } from "reducers/orders";
 
 export type ApplicationState = {
   auth: AuthStateType,
@@ -19,7 +21,9 @@ export type ApplicationState = {
   supplier: SupplierStateType,
   leave: LeaveStateType,
   sale: SaleStateType,
-  customerReturn: CustomerReturnStateType
+  customerReturn: CustomerReturnStateType,
+  user: UserStateType,
+  order: OrdersStateType,
 };
 
 export default (history: History) =>
@@ -31,5 +35,7 @@ export default (history: History) =>
     leave,
     sale,
     customerReturn,
-    router: connectRouter(history)
+    user,
+    order,
+    router: connectRouter(history),
   });

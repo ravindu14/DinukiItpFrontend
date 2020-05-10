@@ -3,7 +3,7 @@ import React, { Component, Fragment } from "react";
 import { connect } from "react-redux";
 import {
   type AsyncStatusType,
-  type NotificationType
+  type NotificationType,
 } from "shared/types/General";
 
 import Layout from "components/adminLayout";
@@ -14,18 +14,20 @@ import Input from "components/Input";
 import Alert from "components/Alert";
 import Loader from "components/loader";
 
-import { addEmployee } from "action/employee";
+import { addEmployee, initializeEmployee } from "action/employee";
 import { serviceManager } from "services/manager";
 import { isEmpty } from "shared/utils";
 import { ASYNC_STATUS } from "constants/async";
 import { isNic, isEmail } from "shared/kernel/cast";
 
 import "./styles.scss";
+import Select from "components/Select";
 
 type AdminAddEmployeePageProps = {
   addEmployee: Function,
+  initializeEmployee: Function,
   status: AsyncStatusType,
-  notification: NotificationType
+  notification: NotificationType,
 };
 
 type AdminAddEmployeePageState = {
@@ -37,7 +39,7 @@ type AdminAddEmployeePageState = {
     address: string,
     nic: string,
     email: string,
-    salaryPerMonth: string
+    salaryPerMonth: string,
   },
   errors: {
     employeeName: null | string,
@@ -45,8 +47,8 @@ type AdminAddEmployeePageState = {
     address: null | string,
     nic: null | string,
     email: null | string,
-    salaryPerMonth: null | string
-  }
+    salaryPerMonth: null | string,
+  },
 };
 
 class AdminAddEmployeePage extends Component<
@@ -60,12 +62,12 @@ class AdminAddEmployeePage extends Component<
       form: {
         employeeId: "",
         employeeName: "",
-        employeeType: "",
+        employeeType: "Admin",
         contactNumber: "",
         address: "",
         nic: "",
         email: "",
-        salaryPerMonth: ""
+        salaryPerMonth: "",
       },
       errors: {
         employeeName: null,
@@ -73,8 +75,8 @@ class AdminAddEmployeePage extends Component<
         address: null,
         nic: null,
         email: null,
-        salaryPerMonth: null
-      }
+        salaryPerMonth: null,
+      },
     };
 
     // $FlowFixMe
@@ -92,6 +94,8 @@ class AdminAddEmployeePage extends Component<
   }
 
   componentDidMount() {
+    this.props.initializeEmployee();
+
     let employeeService = serviceManager.get("EmployeeService");
 
     employeeService.getNewEmployeeCode().then(({ success, employeeId }) => {
@@ -99,8 +103,8 @@ class AdminAddEmployeePage extends Component<
         this.setState(({ form }) => ({
           form: {
             ...form,
-            employeeId: employeeId
-          }
+            employeeId: employeeId,
+          },
         }));
       }
     });
@@ -110,7 +114,14 @@ class AdminAddEmployeePage extends Component<
     this.resetFormErrors();
 
     const {
-      form: { employeeName, contactNumber, address, nic, email, salaryPerMonth }
+      form: {
+        employeeName,
+        contactNumber,
+        address,
+        nic,
+        email,
+        salaryPerMonth,
+      },
     } = this.state;
 
     let hasError = false;
@@ -123,6 +134,9 @@ class AdminAddEmployeePage extends Component<
     if (contactNumber === "") {
       this.setFormErrors("contactNumber", "ContactNumber is required.");
       hasError = true;
+    } else if (!(contactNumber.length === 9 || contactNumber.length === 10)) {
+      this.setFormErrors("contactNumber", "ContactNumber is invalid.");
+      hasError = true;
     }
 
     if (address === "") {
@@ -133,25 +147,24 @@ class AdminAddEmployeePage extends Component<
     if (nic === "") {
       this.setFormErrors("nic", "Nic is required.");
       hasError = true;
-    }
-
-    if (isNic(nic)) {
+    } else if (isNic(nic)) {
       this.setFormErrors("nic", "Nic is not valid.");
-      hasError = true;
-    }
-
-    if (!isEmail(email)) {
-      this.setFormErrors("email", "Email is not valid.");
       hasError = true;
     }
 
     if (email === "") {
       this.setFormErrors("email", "Email is required.");
       hasError = true;
+    } else if (!isEmail(email)) {
+      this.setFormErrors("email", "Email is not valid.");
+      hasError = true;
     }
 
     if (salaryPerMonth === "") {
       this.setFormErrors("salaryPerMonth", "SalaryPerMonth is required.");
+      hasError = true;
+    } else if (isNaN(salaryPerMonth)) {
+      this.setFormErrors("salaryPerMonth", "SalaryPerMonth is invalid.");
       hasError = true;
     }
 
@@ -167,8 +180,8 @@ class AdminAddEmployeePage extends Component<
         address: null,
         nic: null,
         email: null,
-        salaryPerMonth: null
-      }
+        salaryPerMonth: null,
+      },
     });
   }
 
@@ -177,8 +190,8 @@ class AdminAddEmployeePage extends Component<
       return {
         errors: {
           ...errors,
-          [field]: message
-        }
+          [field]: message,
+        },
       };
     });
   }
@@ -188,13 +201,13 @@ class AdminAddEmployeePage extends Component<
       form: {
         ...form,
         employeeName: "",
-        employeeType: "",
+        employeeType: "Admin",
         contactNumber: "",
         address: "",
         nic: "",
         email: "",
-        salaryPerMonth: ""
-      }
+        salaryPerMonth: "",
+      },
     }));
   }
 
@@ -202,8 +215,8 @@ class AdminAddEmployeePage extends Component<
     this.setState(({ form }) => ({
       form: {
         ...form,
-        ...value
-      }
+        ...value,
+      },
     }));
   }
 
@@ -225,9 +238,9 @@ class AdminAddEmployeePage extends Component<
         address,
         nic,
         email,
-        salaryPerMonth
+        salaryPerMonth,
       },
-      errors
+      errors,
     } = this.state;
 
     const { status, notification } = this.props;
@@ -237,7 +250,7 @@ class AdminAddEmployeePage extends Component<
         breadcrumbs={["Add New Employee"]}
         actions={
           <Fragment>
-            <Button type={Button.TYPE.DANGER} onClick={this.resetProduct}>
+            <Button type={Button.TYPE.DANGER} onClick={this.resetEmployee}>
               Reset
             </Button>
             <Button
@@ -280,7 +293,7 @@ class AdminAddEmployeePage extends Component<
                       <Input
                         id="employeeName"
                         text={employeeName}
-                        onChange={employeeName =>
+                        onChange={(employeeName) =>
                           this.onChangeFormField({ employeeName })
                         }
                         error={errors.employeeName}
@@ -296,10 +309,11 @@ class AdminAddEmployeePage extends Component<
                       Employee Type
                     </Col>
                     <Col sm={12} md={6}>
-                      <Input
+                      <Select
                         id="employeeType"
-                        text={employeeType}
-                        onChange={employeeType =>
+                        selected={employeeType}
+                        options={["Admin", "Store Keeper", "Cashier"]}
+                        onChange={(employeeType) =>
                           this.onChangeFormField({ employeeType })
                         }
                       />
@@ -317,7 +331,7 @@ class AdminAddEmployeePage extends Component<
                       <Input
                         id="contactNumber"
                         text={contactNumber}
-                        onChange={contactNumber =>
+                        onChange={(contactNumber) =>
                           this.onChangeFormField({ contactNumber })
                         }
                         error={errors.contactNumber}
@@ -336,7 +350,7 @@ class AdminAddEmployeePage extends Component<
                       <Input
                         id="address"
                         text={address}
-                        onChange={address =>
+                        onChange={(address) =>
                           this.onChangeFormField({ address })
                         }
                         error={errors.address}
@@ -355,7 +369,7 @@ class AdminAddEmployeePage extends Component<
                       <Input
                         id="nic"
                         text={nic}
-                        onChange={nic => this.onChangeFormField({ nic })}
+                        onChange={(nic) => this.onChangeFormField({ nic })}
                         error={errors.nic}
                       />
                     </Col>
@@ -372,7 +386,7 @@ class AdminAddEmployeePage extends Component<
                       <Input
                         id="email"
                         text={email}
-                        onChange={email => this.onChangeFormField({ email })}
+                        onChange={(email) => this.onChangeFormField({ email })}
                         error={errors.email}
                       />
                     </Col>
@@ -389,7 +403,7 @@ class AdminAddEmployeePage extends Component<
                       <Input
                         id="salary"
                         text={salaryPerMonth}
-                        onChange={salaryPerMonth =>
+                        onChange={(salaryPerMonth) =>
                           this.onChangeFormField({ salaryPerMonth })
                         }
                         error={errors.salaryPerMonth}
@@ -409,12 +423,13 @@ class AdminAddEmployeePage extends Component<
 function mapStateToProps(state) {
   return {
     status: state.employee.status,
-    notification: state.employee.notification
+    notification: state.employee.notification,
   };
 }
 
 const Actions = {
-  addEmployee
+  addEmployee,
+  initializeEmployee,
 };
 
 export default connect(mapStateToProps, Actions)(AdminAddEmployeePage);

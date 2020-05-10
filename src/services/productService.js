@@ -26,6 +26,10 @@ export class ProductService {
     return this.api.get(this.endpoint, filters);
   }
 
+  getProduct(productCode: string) {
+    return this.api.get(`${this.endpoint}/${productCode}`);
+  }
+
   updateProduct(payload: Object) {
     return this.api.put(this.endpoint, payload);
   }

@@ -2,33 +2,34 @@
 import { type Action } from "shared/types/ReducerAction";
 import {
   type AsyncStatusType,
-  type NotificationType
+  type NotificationType,
 } from "shared/types/General";
 
 import { ASYNC_STATUS } from "constants/async";
 import {
   ASYNC_LEAVE_INIT,
   HANDLE_NOTIFICATION,
-  GET_LEAVES_SUCCESS
+  GET_LEAVES_SUCCESS,
+  INITIATE_LEAVE,
 } from "actionTypes/leave";
 
 export type LeaveStateType = {
   status: AsyncStatusType,
   notification: NotificationType,
-  leaves: Array<any>
+  leaves: Array<any>,
 };
 
 const initialState: LeaveStateType = {
   status: ASYNC_STATUS.INIT,
   notification: null,
-  leaves: []
+  leaves: [],
 };
 
 function asyncLeaveInit(state: LeaveStateType) {
   return {
     ...state,
     status: ASYNC_STATUS.LOADING,
-    notification: null
+    notification: null,
   };
 }
 
@@ -39,7 +40,7 @@ function handleNotification(
   return {
     ...state,
     notification,
-    status: isSuccess ? ASYNC_STATUS.SUCCESS : ASYNC_STATUS.FAILURE
+    status: isSuccess ? ASYNC_STATUS.SUCCESS : ASYNC_STATUS.FAILURE,
   };
 }
 
@@ -56,7 +57,14 @@ export default (
       return {
         ...state,
         status: ASYNC_STATUS.SUCCESS,
-        leaves: payload
+        leaves: payload,
+      };
+    case INITIATE_LEAVE:
+      return {
+        ...state,
+        status: ASYNC_STATUS.INIT,
+        notification: null,
+        leaves: [],
       };
     default:
       return state;

@@ -2,33 +2,68 @@
 import { type Action } from "shared/types/ReducerAction";
 import {
   type AsyncStatusType,
-  type NotificationType
+  type NotificationType,
 } from "shared/types/General";
 
 import { ASYNC_STATUS } from "constants/async";
 import {
   ASYNC_CUSTOMER_RETURN_INIT,
   HANDLE_NOTIFICATION,
-  GET_CUSTOMER_RETURN_SUCCESS
+  GET_CUSTOMER_RETURN_SUCCESS,
+  INITIALIZE_CUSTOMER_RETURN,
+  GET_CUS_RETURN_SUCCESS,
 } from "actionTypes/customerReturn";
 
 export type CustomerReturnStateType = {
   status: AsyncStatusType,
   notification: NotificationType,
-  customerReturns: Array<any>
+  customerReturns: Array<any>,
+  customerReturn: null | Object,
 };
 
 const initialState: CustomerReturnStateType = {
   status: ASYNC_STATUS.INIT,
   notification: null,
-  customerReturns: []
+  customerReturns: [],
+  customerReturn: null,
 };
 
 function asyncCustomerReturnInit(state: CustomerReturnStateType) {
   return {
     ...state,
     status: ASYNC_STATUS.LOADING,
-    notification: null
+    notification: null,
+  };
+}
+
+function getCustomerReturnSuccess(
+  state,
+  {
+    returnId,
+    productCode,
+    ProductName,
+    size,
+    color,
+    quantity,
+    reason,
+    cashierId,
+    date,
+  }
+) {
+  return {
+    ...state,
+    status: ASYNC_STATUS.SUCCESS,
+    customerReturn: {
+      returnId,
+      productCode,
+      ProductName,
+      size,
+      color,
+      quantity,
+      reason,
+      cashierId,
+      date,
+    },
   };
 }
 
@@ -39,7 +74,7 @@ function handleNotification(
   return {
     ...state,
     notification,
-    status: isSuccess ? ASYNC_STATUS.SUCCESS : ASYNC_STATUS.FAILURE
+    status: isSuccess ? ASYNC_STATUS.SUCCESS : ASYNC_STATUS.FAILURE,
   };
 }
 
@@ -52,11 +87,19 @@ export default (
       return asyncCustomerReturnInit(state);
     case HANDLE_NOTIFICATION:
       return handleNotification(state, payload);
+    case GET_CUS_RETURN_SUCCESS:
+      return getCustomerReturnSuccess(state, payload);
     case GET_CUSTOMER_RETURN_SUCCESS:
       return {
         ...state,
         status: ASYNC_STATUS.SUCCESS,
-        customerReturns: payload
+        customerReturns: payload,
+      };
+    case INITIALIZE_CUSTOMER_RETURN:
+      return {
+        ...state,
+        status: ASYNC_STATUS.INIT,
+        notification: null,
       };
     default:
       return state;

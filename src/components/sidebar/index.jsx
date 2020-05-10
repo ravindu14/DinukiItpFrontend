@@ -19,8 +19,8 @@ export default function sidebar() {
           icon="inventory"
           items={[
             { title: "Add New Product", link: "/product/create" },
-            { title: "Update Product", link: "/product/update" },
-            { title: "Set Margin", link: "/product/margin" }
+            { title: "View Products", link: "/product/products" },
+            { title: "Set Margin", link: "/product/margin" },
           ]}
         />
         <SubMenu
@@ -28,7 +28,15 @@ export default function sidebar() {
           icon="money"
           items={[
             { title: "Create Stock Return", link: "/return/create" },
-            { title: "View Returns", link: "/returns" }
+            { title: "View Returns", link: "/returns" },
+          ]}
+        />
+        <SubMenu
+          title="Supplier Orders"
+          icon="lorry"
+          items={[
+            { title: "Create Supplier Order", link: "/orders/create" },
+            { title: "View Supplier Order", link: "/orders" },
           ]}
         />
       </div>

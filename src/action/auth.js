@@ -4,13 +4,13 @@ import {
   HANDLE_NOTIFICATION,
   AUTH_SIGN_IN_SUCCESS,
   AUTH_SIGN_OUT_SUCCESS,
-  AUTH_AUTHENTICATION_FAILURE
+  AUTH_AUTHENTICATION_FAILURE,
 } from "actionTypes/auth";
 import Alert from "components/Alert";
 
 function asyncAuthInit() {
   return {
-    type: ASYNC_AUTH_INIT
+    type: ASYNC_AUTH_INIT,
   };
 }
 
@@ -21,9 +21,9 @@ function notificationHandler(isSuccess, message) {
       isSuccess,
       notification: {
         type: isSuccess ? Alert.TYPE.SUCCESS : Alert.TYPE.ERROR,
-        message
-      }
-    }
+        message,
+      },
+    },
   };
 }
 
@@ -103,22 +103,23 @@ export function isUserAuthenticated() {
             dispatch({ type: AUTH_SIGN_IN_SUCCESS, payload: data });
           } else {
             dispatch({ type: AUTH_AUTHENTICATION_FAILURE });
-            dispatch(notificationHandler(false, "Session Expired"));
           }
         })
-        .catch(({ message }) => {
-          dispatch(
-            notificationHandler(false, message ? message : "Session Expired")
-          );
+        .catch(() => {
+          // eslint-disable-next-line no-console
+          console.log("Session Expired!");
+          dispatch({ type: AUTH_AUTHENTICATION_FAILURE });
         });
     } else {
-      dispatch(notificationHandler(false, "Session Expired"));
+      // eslint-disable-next-line no-console
+      console.log("Session Expired!");
+      dispatch({ type: AUTH_AUTHENTICATION_FAILURE });
     }
   };
 }
 
 export function authSignOut() {
-  return dispatch => {
+  return (dispatch) => {
     localStorage.removeItem("token");
     dispatch({ type: AUTH_SIGN_OUT_SUCCESS });
   };

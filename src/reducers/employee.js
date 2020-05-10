@@ -2,7 +2,7 @@
 import { type Action } from "shared/types/ReducerAction";
 import {
   type AsyncStatusType,
-  type NotificationType
+  type NotificationType,
 } from "shared/types/General";
 
 import { ASYNC_STATUS } from "constants/async";
@@ -10,28 +10,30 @@ import {
   ASYNC_EMPLOYEE_INIT,
   HANDLE_NOTIFICATION,
   GET_EMPLOYEE_SUCCESS,
-  INIT_EMPLOYEE
+  INIT_EMPLOYEE,
+  INITIALIZE_EMPLOYEE,
+  GET_EMP_SUCCESS,
 } from "actionTypes/employee";
 
 export type EmployeeStateType = {
   status: AsyncStatusType,
   notification: NotificationType,
   employees: Array<any>,
-  employee: null | object
+  employee: null | object,
 };
 
 const initialState: EmployeeStateType = {
   status: ASYNC_STATUS.INIT,
   notification: null,
   employees: [],
-  employee: null
+  employee: null,
 };
 
 function asyncEmployeeInit(state: EmployeeStateType) {
   return {
     ...state,
     status: ASYNC_STATUS.LOADING,
-    notification: null
+    notification: null,
   };
 }
 
@@ -42,7 +44,36 @@ function handleNotification(
   return {
     ...state,
     notification,
-    status: isSuccess ? ASYNC_STATUS.SUCCESS : ASYNC_STATUS.FAILURE
+    status: isSuccess ? ASYNC_STATUS.SUCCESS : ASYNC_STATUS.FAILURE,
+  };
+}
+
+function getEmpSuccess(
+  state,
+  {
+    employeeId,
+    employeeName,
+    employeeType,
+    contactNumber,
+    address,
+    nic,
+    email,
+    salaryPerMonth,
+  }
+) {
+  return {
+    ...state,
+    status: ASYNC_STATUS.SUCCESS,
+    employee: {
+      employeeId,
+      employeeName,
+      employeeType,
+      contactNumber,
+      address,
+      nic,
+      email,
+      salaryPerMonth,
+    },
   };
 }
 
@@ -59,14 +90,22 @@ export default (
       return {
         ...state,
         status: ASYNC_STATUS.SUCCESS,
-        employees: payload
+        employees: payload,
       };
     case INIT_EMPLOYEE:
       return {
         ...state,
         status: ASYNC_STATUS.INIT,
-        notification: null
+        notification: null,
       };
+    case INITIALIZE_EMPLOYEE:
+      return {
+        ...state,
+        status: ASYNC_STATUS.INIT,
+        notification: null,
+      };
+    case GET_EMP_SUCCESS:
+      return getEmpSuccess(state, payload);
     default:
       return state;
   }

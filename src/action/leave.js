@@ -2,13 +2,22 @@
 import {
   ASYNC_LEAVE_INIT,
   HANDLE_NOTIFICATION,
-  GET_LEAVES_SUCCESS
+  GET_LEAVES_SUCCESS,
+  INITIATE_LEAVE,
 } from "actionTypes/leave";
 import Alert from "components/Alert";
 
 function asyncLeaveInit() {
   return {
-    type: ASYNC_LEAVE_INIT
+    type: ASYNC_LEAVE_INIT,
+  };
+}
+
+export function initializeLeave() {
+  return (dispatch) => {
+    dispatch({
+      type: INITIATE_LEAVE,
+    });
   };
 }
 
@@ -19,9 +28,9 @@ function notificationHandler(isSuccess, message) {
       isSuccess,
       notification: {
         type: isSuccess ? Alert.TYPE.SUCCESS : Alert.TYPE.ERROR,
-        message
-      }
-    }
+        message,
+      },
+    },
   };
 }
 

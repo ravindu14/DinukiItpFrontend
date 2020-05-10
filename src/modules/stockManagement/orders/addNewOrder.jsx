@@ -3,10 +3,10 @@ import React, { Component, Fragment } from "react";
 import { connect } from "react-redux";
 import {
   type AsyncStatusType,
-  type NotificationType
+  type NotificationType,
 } from "shared/types/General";
 
-import Layout from "components/adminLayout";
+import Layout from "components/inventoryLayout";
 import Button from "components/button";
 import Row from "components/Row";
 import Col from "components/Col";
@@ -14,72 +14,73 @@ import Input from "components/Input";
 import Loader from "components/loader";
 import Alert from "components/Alert";
 
-import { addProduct } from "action/product";
+import { addOrders, initializeOrder } from "action/orders";
+import { getSuppliers } from "action/supplier";
+import { getProducts } from "action/product";
 import { serviceManager } from "services/manager";
 import { isEmpty } from "shared/utils";
 import { ASYNC_STATUS } from "constants/async";
+import { filters } from "constants/user";
 
 import "./styles.scss";
+import Select from "components/Select";
 
-type AdminAddProductPageProps = {
-  addProduct: Function,
+type AddOrderPageProps = {
+  addOrders: Function,
+  initializeOrder: Function,
   status: AsyncStatusType,
-  notification: NotificationType
+  notification: NotificationType,
+  getSuppliers: Function,
+  supplierStatus: AsyncStatusType,
+  supplierNotification: NotificationType,
+  getProducts: Function,
+  productStatus: AsyncStatusType,
+  productNotification: NotificationType,
+  suppliers: Array<any>,
+  products: Array<any>,
 };
 
-type AdminAddProductPageState = {
+type AddOrderPageState = {
   form: {
+    orderId: string,
+    supplierCode: string,
     productCode: string,
     productName: string,
-    supplierCode: string,
     size: string,
     price: string,
     color: String,
     quantity: string,
-    storeLocation: string,
-    margin: string
   },
   errors: {
-    productName: null | string,
-    size: null | string,
-    price: null | string,
-    quantity: null | string,
-    storeLocation: null | string,
     supplierCode: null | string,
-    color: null | string
-  }
+    productCode: null | string,
+    quantity: null | string,
+  },
 };
 
-class AdminAddProductPage extends Component<
-  AdminAddProductPageProps,
-  AdminAddProductPageState
-> {
+class AddOrderPage extends Component<AddOrderPageProps, AddOrderPageState> {
   constructor(props) {
     super(props);
 
     this.state = {
       form: {
+        orderId: "",
+        supplierCode: "",
         productCode: "",
         productName: "",
-        supplierCode: "",
         size: "",
         price: "",
         color: "",
         quantity: "",
-        storeLocation: "",
-        margin: "10"
       },
       errors: {
-        productName: null,
-        size: null,
-        price: null,
-        quantity: null,
         supplierCode: null,
-        color: null
-      }
+        productCode: null,
+        quantity: null,
+      },
     };
     // $FlowFixMe
-    this.resetProduct = this.resetProduct.bind(this);
+    this.resetOrder = this.resetOrder.bind(this);
     // $FlowFixMe
     this.onChangeFormField = this.onChangeFormField.bind(this);
     // $FlowFixMe
@@ -90,18 +91,24 @@ class AdminAddProductPage extends Component<
     this.onSubmitForm = this.onSubmitForm.bind(this);
     // $FlowFixMe
     this.validateForm = this.validateForm.bind(this);
+    // $FlowFixMe
+    this.onChangeProductCode = this.onChangeProductCode.bind(this);
   }
 
   componentDidMount() {
-    let productService = serviceManager.get("ProductService");
+    this.props.getSuppliers({ ...filters });
+    this.props.getProducts({ ...filters });
+    this.props.initializeOrder();
 
-    productService.getNewProductCode().then(({ success, orderNumber }) => {
+    let ordersService = serviceManager.get("OrdersService");
+
+    ordersService.getNewOrderId().then(({ success, orderNumber }) => {
       if (success) {
         this.setState(({ form }) => ({
           form: {
             ...form,
-            productCode: orderNumber
-          }
+            orderId: orderNumber,
+          },
         }));
       }
     });
@@ -111,33 +118,26 @@ class AdminAddProductPage extends Component<
     this.resetFormErrors();
 
     const {
-      form: { productName, size, price, quantity, color }
+      form: { supplierCode, productCode, quantity },
     } = this.state;
 
     let hasError = false;
 
-    if (productName === "") {
-      this.setFormErrors("productName", "Product name is required.");
+    if (supplierCode === "") {
+      this.setFormErrors("supplierCode", "Supplier name is required.");
       hasError = true;
     }
 
-    if (size === "") {
-      this.setFormErrors("size", "Size is required.");
-      hasError = true;
-    }
-
-    if (color === "") {
-      this.setFormErrors("color", "Color is required.");
-      hasError = true;
-    }
-
-    if (price === "") {
-      this.setFormErrors("price", "Price is required.");
+    if (productCode === "") {
+      this.setFormErrors("productCode", "Product is required.");
       hasError = true;
     }
 
     if (quantity === "") {
       this.setFormErrors("quantity", "Quantity is required.");
+      hasError = true;
+    } else if (/\D/.test(quantity)) {
+      this.setFormErrors("quantity", "Quantity is invalid.");
       hasError = true;
     }
 
@@ -148,12 +148,10 @@ class AdminAddProductPage extends Component<
     this.setState({
       ...this.state,
       errors: {
-        productName: null,
-        size: null,
-        price: null,
+        supplierCode: null,
+        productCode: null,
         quantity: null,
-        color: null
-      }
+      },
     });
   }
 
@@ -162,24 +160,24 @@ class AdminAddProductPage extends Component<
       return {
         errors: {
           ...errors,
-          [field]: message
-        }
+          [field]: message,
+        },
       };
     });
   }
 
-  resetProduct() {
+  resetOrder() {
     this.setState(({ form }) => ({
       form: {
         ...form,
+        supplierCode: "",
+        productCode: "",
         productName: "",
         size: "",
         price: "",
         quantity: "",
-        storeLocation: "",
         color: "",
-        margin: "100"
-      }
+      },
     }));
   }
 
@@ -187,8 +185,27 @@ class AdminAddProductPage extends Component<
     this.setState(({ form }) => ({
       form: {
         ...form,
-        ...value
-      }
+        ...value,
+      },
+    }));
+  }
+
+  onChangeProductCode(code) {
+    const { products } = this.props;
+
+    const selectedProduct = products.filter(
+      ({ productCode }) => productCode === code
+    );
+
+    this.setState(({ form }) => ({
+      form: {
+        ...form,
+        productCode: code,
+        productName: selectedProduct[0].productName,
+        size: selectedProduct[0].size,
+        price: selectedProduct[0].price,
+        color: selectedProduct[0].color,
+      },
     }));
   }
 
@@ -196,37 +213,55 @@ class AdminAddProductPage extends Component<
     const { form } = this.state;
 
     if (!this.validateForm()) {
-      this.props.addProduct({ ...form });
+      this.props.addOrders({ ...form });
     }
   }
 
   render() {
-    const { status, notification } = this.props;
+    const {
+      status,
+      notification,
+      supplierStatus,
+      suppliers,
+      productStatus,
+      products,
+    } = this.props;
+
     const {
       form: {
+        orderId,
+        supplierCode,
         productCode,
         productName,
         size,
         price,
+        color,
         quantity,
-        storeLocation,
-        supplierCode,
-        color
       },
-      errors
+      errors,
     } = this.state;
+
+    const supplierOptions =
+      suppliers.length > 0
+        ? [...suppliers.map(({ supplierCode }) => supplierCode)]
+        : [];
+
+    const productOptions =
+      products.length > 0
+        ? [...products.map(({ productCode }) => productCode)]
+        : [];
 
     return (
       <Layout
-        breadcrumbs={["Add New Product"]}
+        breadcrumbs={["Add New Order"]}
         actions={
           <Fragment>
-            <Button type={Button.TYPE.DANGER} onClick={this.resetProduct}>
+            <Button type={Button.TYPE.DANGER} onClick={this.resetOrder}>
               Reset
             </Button>
             <Button
               type={Button.TYPE.SUCCESS}
-              disabled={isEmpty(productCode)}
+              disabled={isEmpty(orderId)}
               onClick={this.onSubmitForm}
             >
               Save
@@ -237,38 +272,21 @@ class AdminAddProductPage extends Component<
         {notification && (
           <Alert type={notification.type}>{notification.message}</Alert>
         )}
-        {status === ASYNC_STATUS.LOADING ? (
+        {status === ASYNC_STATUS.LOADING ||
+        supplierStatus === ASYNC_STATUS.LOADING ||
+        productStatus === ASYNC_STATUS.LOADING ? (
           <Loader isLoading />
         ) : (
-          <div className="add-product">
-            <div className="add-product-container">
+          <div className="add-order">
+            <div className="add-order-container">
               <Row>
                 <Col>
                   <Row>
                     <Col className="field-label" sm={12} md={6}>
-                      Product Code
+                      Order Id
                     </Col>
                     <Col sm={12} md={6}>
-                      <Input id="productCode" text={productCode} disabled />
-                    </Col>
-                  </Row>
-                </Col>
-              </Row>
-              <Row>
-                <Col>
-                  <Row>
-                    <Col className="field-label" sm={12} md={6}>
-                      Product Name
-                    </Col>
-                    <Col sm={12} md={6}>
-                      <Input
-                        id="productName"
-                        text={productName}
-                        onChange={productName =>
-                          this.onChangeFormField({ productName })
-                        }
-                        error={errors.productName}
-                      />
+                      <Input id="orderId" text={orderId} disabled />
                     </Col>
                   </Row>
                 </Col>
@@ -280,10 +298,12 @@ class AdminAddProductPage extends Component<
                       Supplier Code
                     </Col>
                     <Col sm={12} md={6}>
-                      <Input
+                      <Select
                         id="supplierCode"
-                        text={supplierCode}
-                        onChange={supplierCode =>
+                        options={supplierOptions}
+                        placeholder="Select"
+                        selected={supplierCode}
+                        onChange={(supplierCode) =>
                           this.onChangeFormField({ supplierCode })
                         }
                         error={errors.supplierCode}
@@ -296,15 +316,43 @@ class AdminAddProductPage extends Component<
                 <Col>
                   <Row>
                     <Col className="field-label" sm={12} md={6}>
+                      Product Code
+                    </Col>
+                    <Col sm={12} md={6}>
+                      <Select
+                        id="productCode"
+                        options={productOptions}
+                        placeholder="Select"
+                        selected={productCode}
+                        onChange={(productCode) =>
+                          this.onChangeProductCode(productCode)
+                        }
+                        error={errors.productCode}
+                      />
+                    </Col>
+                  </Row>
+                </Col>
+              </Row>
+              <Row>
+                <Col>
+                  <Row>
+                    <Col className="field-label" sm={12} md={6}>
+                      Product Name
+                    </Col>
+                    <Col sm={12} md={6}>
+                      <Input id="productName" text={productName} disabled />
+                    </Col>
+                  </Row>
+                </Col>
+              </Row>
+              <Row>
+                <Col>
+                  <Row>
+                    <Col className="field-label" sm={12} md={6}>
                       Size
                     </Col>
                     <Col sm={12} md={6}>
-                      <Input
-                        id="size"
-                        text={size}
-                        onChange={size => this.onChangeFormField({ size })}
-                        error={errors.size}
-                      />
+                      <Input id="size" type="number" text={size} disabled />
                     </Col>
                   </Row>
                 </Col>
@@ -316,12 +364,7 @@ class AdminAddProductPage extends Component<
                       Price
                     </Col>
                     <Col sm={12} md={6}>
-                      <Input
-                        id="price"
-                        text={price}
-                        onChange={price => this.onChangeFormField({ price })}
-                        error={errors.price}
-                      />
+                      <Input id="price" text={price} disabled />
                     </Col>
                   </Row>
                 </Col>
@@ -333,12 +376,7 @@ class AdminAddProductPage extends Component<
                       Color
                     </Col>
                     <Col sm={12} md={6}>
-                      <Input
-                        id="color"
-                        text={color}
-                        onChange={color => this.onChangeFormField({ color })}
-                        error={errors.color}
-                      />
+                      <Input id="color" text={color} disabled />
                     </Col>
                   </Row>
                 </Col>
@@ -353,28 +391,11 @@ class AdminAddProductPage extends Component<
                       <Input
                         id="quantity"
                         text={quantity}
-                        onChange={quantity =>
+                        type="number"
+                        onChange={(quantity) =>
                           this.onChangeFormField({ quantity })
                         }
                         error={errors.quantity}
-                      />
-                    </Col>
-                  </Row>
-                </Col>
-              </Row>
-              <Row>
-                <Col>
-                  <Row>
-                    <Col className="field-label" sm={12} md={6}>
-                      Store Location
-                    </Col>
-                    <Col sm={12} md={6}>
-                      <Input
-                        id="storeLocation"
-                        text={storeLocation}
-                        onChange={storeLocation =>
-                          this.onChangeFormField({ storeLocation })
-                        }
                       />
                     </Col>
                   </Row>
@@ -390,13 +411,22 @@ class AdminAddProductPage extends Component<
 
 function mapStateToProps(state) {
   return {
-    status: state.product.status,
-    notification: state.product.notification
+    status: state.order.status,
+    notification: state.order.notification,
+    supplierStatus: state.supplier.status,
+    supplierNotification: state.supplier.notification,
+    suppliers: state.supplier.suppliers,
+    productStatus: state.product.status,
+    productNotification: state.product.notification,
+    products: state.product.products,
   };
 }
 
 const Actions = {
-  addProduct
+  getProducts,
+  getSuppliers,
+  addOrders,
+  initializeOrder,
 };
 
-export default connect(mapStateToProps, Actions)(AdminAddProductPage);
+export default connect(mapStateToProps, Actions)(AddOrderPage);

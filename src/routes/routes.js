@@ -9,7 +9,7 @@ export default [
     exact: true,
     auth: true,
     roles: [USER_ROLES.ADMIN],
-    component: lazy(() => import("modules/dashboard/home"))
+    component: lazy(() => import("modules/dashboard/home")),
   },
   {
     path: "/product/create",
@@ -18,16 +18,25 @@ export default [
     roles: [USER_ROLES.ADMIN],
     component: lazy(() =>
       import("modules/stockManagement/inventory/addNewProduct")
-    )
+    ),
   },
   {
-    path: "/product/update",
+    path: "/product/products",
+    exact: true,
+    auth: true,
+    roles: [USER_ROLES.ADMIN],
+    component: lazy(() =>
+      import("modules/stockManagement/inventory/viewProducts")
+    ),
+  },
+  {
+    path: "/product/update/:productCode",
     exact: true,
     auth: true,
     roles: [USER_ROLES.ADMIN],
     component: lazy(() =>
       import("modules/stockManagement/inventory/updateProducts")
-    )
+    ),
   },
   {
     path: "/product/margin",
@@ -36,7 +45,7 @@ export default [
     roles: [USER_ROLES.ADMIN],
     component: lazy(() =>
       import("modules/stockManagement/inventory/setProductMargin")
-    )
+    ),
   },
   {
     path: "/return/create",
@@ -45,7 +54,16 @@ export default [
     roles: [USER_ROLES.ADMIN],
     component: lazy(() =>
       import("modules/stockManagement/stockReturn/createStockReturn")
-    )
+    ),
+  },
+  {
+    path: "/return/update/:returnId",
+    exact: true,
+    auth: true,
+    roles: [USER_ROLES.ADMIN],
+    component: lazy(() =>
+      import("modules/stockManagement/stockReturn/updateStockReturn")
+    ),
   },
   {
     path: "/returns",
@@ -54,34 +72,42 @@ export default [
     roles: [USER_ROLES.ADMIN],
     component: lazy(() =>
       import("modules/stockManagement/stockReturn/viewStockReturns")
-    )
+    ),
   },
   {
-    path: "/admin/product/create",
+    path: "/orders/create",
     exact: true,
     auth: true,
     roles: [USER_ROLES.ADMIN],
-    component: lazy(() =>
-      import("modules/adminManagement/inventory/addProduct")
-    )
+    component: lazy(() => import("modules/stockManagement/orders/addNewOrder")),
   },
   {
-    path: "/admin/products",
+    path: "/orders/update/:orderId",
     exact: true,
     auth: true,
     roles: [USER_ROLES.ADMIN],
-    component: lazy(() =>
-      import("modules/adminManagement/inventory/viewProducts")
-    )
+    component: lazy(() => import("modules/stockManagement/orders/updateOrder")),
   },
   {
-    path: "/admin/stockCounts",
+    path: "/orders",
     exact: true,
     auth: true,
     roles: [USER_ROLES.ADMIN],
-    component: lazy(() =>
-      import("modules/adminManagement/inventory/stockCounts")
-    )
+    component: lazy(() => import("modules/stockManagement/orders/viewOrders")),
+  },
+  {
+    path: "/admin/users",
+    exact: true,
+    auth: true,
+    roles: [USER_ROLES.ADMIN],
+    component: lazy(() => import("modules/adminManagement/users/viewUsers")),
+  },
+  {
+    path: "/admin/users/update/:userId",
+    exact: true,
+    auth: true,
+    roles: [USER_ROLES.ADMIN],
+    component: lazy(() => import("modules/adminManagement/users/updateUser")),
   },
   {
     path: "/admin/employee/create",
@@ -90,7 +116,16 @@ export default [
     roles: [USER_ROLES.ADMIN],
     component: lazy(() =>
       import("modules/adminManagement/employee/addEmployee")
-    )
+    ),
+  },
+  {
+    path: "/admin/employees/update/:employeeId",
+    exact: true,
+    auth: true,
+    roles: [USER_ROLES.ADMIN],
+    component: lazy(() =>
+      import("modules/adminManagement/employee/updateEmployee")
+    ),
   },
   {
     path: "/admin/employees",
@@ -99,21 +134,21 @@ export default [
     roles: [USER_ROLES.ADMIN],
     component: lazy(() =>
       import("modules/adminManagement/employee/viewEmployees")
-    )
+    ),
   },
   {
     path: "/admin/leaves/add",
     exact: true,
     auth: true,
     roles: [USER_ROLES.ADMIN],
-    component: lazy(() => import("modules/adminManagement/leaves/addLeaves"))
+    component: lazy(() => import("modules/adminManagement/leaves/addLeaves")),
   },
   {
     path: "/admin/leaves",
     exact: true,
     auth: true,
     roles: [USER_ROLES.ADMIN],
-    component: lazy(() => import("modules/adminManagement/leaves/viewLeaves"))
+    component: lazy(() => import("modules/adminManagement/leaves/viewLeaves")),
   },
   {
     path: "/admin/supplier/create",
@@ -122,7 +157,16 @@ export default [
     roles: [USER_ROLES.ADMIN],
     component: lazy(() =>
       import("modules/adminManagement/suppliers/addSupplier")
-    )
+    ),
+  },
+  {
+    path: "/admin/supplier/update/:supplierCode",
+    exact: true,
+    auth: true,
+    roles: [USER_ROLES.ADMIN],
+    component: lazy(() =>
+      import("modules/adminManagement/suppliers/updateSupplier")
+    ),
   },
   {
     path: "/admin/suppliers",
@@ -131,7 +175,7 @@ export default [
     roles: [USER_ROLES.ADMIN],
     component: lazy(() =>
       import("modules/adminManagement/suppliers/viewSuppliers")
-    )
+    ),
   },
   {
     path: "/admin/salary",
@@ -140,14 +184,14 @@ export default [
     roles: [USER_ROLES.ADMIN],
     component: lazy(() =>
       import("modules/adminManagement/salary/salaryPayment")
-    )
+    ),
   },
   {
     path: "/cashier",
     exact: true,
     auth: true,
     roles: [USER_ROLES.ADMIN],
-    component: lazy(() => import("modules/cashierManagement/cashier"))
+    component: lazy(() => import("modules/cashierManagement/cashier")),
   },
-  ...authRoutes
+  ...authRoutes,
 ];

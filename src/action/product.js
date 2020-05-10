@@ -3,18 +3,26 @@ import {
   ASYNC_PRODUCT_INIT,
   HANDLE_NOTIFICATION,
   GET_PRODUCTS_SUCCESS,
-  INIT_PRODUCT
+  INIT_PRODUCT,
+  INITIALIZE_PRODUCT,
+  GET_PRODUCT_SUCCESS,
 } from "actionTypes/product";
 import Alert from "components/Alert";
 
 function asyncProductInit() {
   return {
-    type: ASYNC_PRODUCT_INIT
+    type: ASYNC_PRODUCT_INIT,
+  };
+}
+
+export function initializeProduct() {
+  return (dispatch) => {
+    dispatch({ type: INITIALIZE_PRODUCT });
   };
 }
 
 export function initProduct() {
-  return dispatch => {
+  return (dispatch) => {
     dispatch({ type: INIT_PRODUCT });
   };
 }
@@ -26,9 +34,9 @@ export function notificationHandler(isSuccess, message) {
       isSuccess,
       notification: {
         type: isSuccess ? Alert.TYPE.SUCCESS : Alert.TYPE.ERROR,
-        message
-      }
-    }
+        message,
+      },
+    },
   };
 }
 
@@ -95,6 +103,34 @@ export function getProducts(filter: Object) {
       .then(({ success, data }) => {
         if (success) {
           dispatch({ type: GET_PRODUCTS_SUCCESS, payload: data.item });
+        } else {
+          dispatch(
+            notificationHandler(
+              success,
+              "Something went wrong. Please try again"
+            )
+          );
+        }
+      })
+      .catch(() => {
+        dispatch(
+          notificationHandler(false, "Something went wrong. Please try again")
+        );
+      });
+  };
+}
+
+export function getProduct(orderNumber: string) {
+  return (dispatch, getState, serviceManager) => {
+    dispatch(asyncProductInit());
+
+    let productService = serviceManager.get("ProductService");
+
+    productService
+      .getProduct(orderNumber)
+      .then(({ success, data }) => {
+        if (success) {
+          dispatch({ type: GET_PRODUCT_SUCCESS, payload: data });
         } else {
           dispatch(
             notificationHandler(

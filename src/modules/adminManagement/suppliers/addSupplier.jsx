@@ -3,7 +3,7 @@ import React, { Component, Fragment } from "react";
 import { connect } from "react-redux";
 import {
   type AsyncStatusType,
-  type NotificationType
+  type NotificationType,
 } from "shared/types/General";
 
 import Layout from "components/adminLayout";
@@ -24,7 +24,7 @@ import Loader from "components/loader";
 type AdminAddSuppliersPageProps = {
   addSupplier: Function,
   status: AsyncStatusType,
-  notification: NotificationType
+  notification: NotificationType,
 };
 
 type AdminAddSuppliersPageState = {
@@ -32,13 +32,13 @@ type AdminAddSuppliersPageState = {
     supplierCode: string,
     supplierName: string,
     contactNumber: string,
-    address: string
+    address: string,
   },
   errors: {
     supplierName: null | string,
     contactNumber: null | string,
-    address: null | string
-  }
+    address: null | string,
+  },
 };
 
 class AdminAddSuppliersPage extends Component<
@@ -53,13 +53,13 @@ class AdminAddSuppliersPage extends Component<
         supplierCode: "",
         supplierName: "",
         contactNumber: "",
-        address: ""
+        address: "",
       },
       errors: {
         supplierName: null,
         contactNumber: null,
-        address: null
-      }
+        address: null,
+      },
     };
 
     // $FlowFixMe
@@ -84,8 +84,8 @@ class AdminAddSuppliersPage extends Component<
         this.setState(({ form }) => ({
           form: {
             ...form,
-            supplierCode: orderNumber
-          }
+            supplierCode: orderNumber,
+          },
         }));
       }
     });
@@ -95,7 +95,7 @@ class AdminAddSuppliersPage extends Component<
     this.resetFormErrors();
 
     const {
-      form: { supplierName, contactNumber, address }
+      form: { supplierName, contactNumber, address },
     } = this.state;
 
     let hasError = false;
@@ -107,6 +107,9 @@ class AdminAddSuppliersPage extends Component<
 
     if (contactNumber === "") {
       this.setFormErrors("contactNumber", "ContactNumber is required.");
+      hasError = true;
+    } else if (!(contactNumber.length === 9 || contactNumber.length === 10)) {
+      this.setFormErrors("contactNumber", "ContactNumber is invalid.");
       hasError = true;
     }
 
@@ -124,8 +127,8 @@ class AdminAddSuppliersPage extends Component<
       errors: {
         supplierName: null,
         contactNumber: null,
-        address: null
-      }
+        address: null,
+      },
     });
   }
 
@@ -134,8 +137,8 @@ class AdminAddSuppliersPage extends Component<
       return {
         errors: {
           ...errors,
-          [field]: message
-        }
+          [field]: message,
+        },
       };
     });
   }
@@ -146,8 +149,8 @@ class AdminAddSuppliersPage extends Component<
         ...form,
         supplierName: "",
         contactNumber: "",
-        address: ""
-      }
+        address: "",
+      },
     }));
   }
 
@@ -155,8 +158,8 @@ class AdminAddSuppliersPage extends Component<
     this.setState(({ form }) => ({
       form: {
         ...form,
-        ...value
-      }
+        ...value,
+      },
     }));
   }
 
@@ -171,7 +174,7 @@ class AdminAddSuppliersPage extends Component<
   render() {
     const {
       form: { supplierCode, supplierName, contactNumber, address },
-      errors
+      errors,
     } = this.state;
 
     const { status, notification } = this.props;
@@ -181,7 +184,7 @@ class AdminAddSuppliersPage extends Component<
         breadcrumbs={["Add New Supplier"]}
         actions={
           <Fragment>
-            <Button type={Button.TYPE.DANGER} onClick={this.resetProduct}>
+            <Button type={Button.TYPE.DANGER} onClick={this.resetSupplier}>
               Reset
             </Button>
             <Button
@@ -224,7 +227,7 @@ class AdminAddSuppliersPage extends Component<
                       <Input
                         id="supplierName"
                         text={supplierName}
-                        onChange={supplierName =>
+                        onChange={(supplierName) =>
                           this.onChangeFormField({ supplierName })
                         }
                         error={errors.supplierName}
@@ -243,7 +246,7 @@ class AdminAddSuppliersPage extends Component<
                       <Input
                         id="address"
                         text={address}
-                        onChange={address =>
+                        onChange={(address) =>
                           this.onChangeFormField({ address })
                         }
                         error={errors.address}
@@ -262,7 +265,7 @@ class AdminAddSuppliersPage extends Component<
                       <Input
                         id="contactNumber"
                         text={contactNumber}
-                        onChange={contactNumber =>
+                        onChange={(contactNumber) =>
                           this.onChangeFormField({ contactNumber })
                         }
                         error={errors.contactNumber}
@@ -282,12 +285,12 @@ class AdminAddSuppliersPage extends Component<
 function mapStateToProps(state) {
   return {
     status: state.supplier.status,
-    notification: state.supplier.notification
+    notification: state.supplier.notification,
   };
 }
 
 const Actions = {
-  addSupplier
+  addSupplier,
 };
 
 export default connect(mapStateToProps, Actions)(AdminAddSuppliersPage);

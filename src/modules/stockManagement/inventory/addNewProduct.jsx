@@ -3,7 +3,7 @@ import React, { Component, Fragment } from "react";
 import { connect } from "react-redux";
 import {
   type AsyncStatusType,
-  type NotificationType
+  type NotificationType,
 } from "shared/types/General";
 
 import Layout from "components/inventoryLayout";
@@ -14,17 +14,25 @@ import Input from "components/Input";
 import Loader from "components/loader";
 import Alert from "components/Alert";
 
-import { addProduct } from "action/product";
+import { addProduct, initializeProduct } from "action/product";
+import { getSuppliers } from "action/supplier";
 import { serviceManager } from "services/manager";
 import { isEmpty } from "shared/utils";
 import { ASYNC_STATUS } from "constants/async";
+import { filters } from "constants/user";
 
 import "./styles.scss";
+import Select from "components/Select";
 
 type AddProductPageProps = {
   addProduct: Function,
   status: AsyncStatusType,
-  notification: NotificationType
+  notification: NotificationType,
+  getSuppliers: Function,
+  supplierStatus: AsyncStatusType,
+  supplierNotification: NotificationType,
+  suppliers: Array<any>,
+  initializeProduct: Function,
 };
 
 type AddProductPageState = {
@@ -37,7 +45,7 @@ type AddProductPageState = {
     color: String,
     quantity: string,
     storeLocation: string,
-    margin: string
+    margin: string,
   },
   errors: {
     productName: null | string,
@@ -46,8 +54,8 @@ type AddProductPageState = {
     quantity: null | string,
     storeLocation: null | string,
     supplierCode: null | string,
-    color: null | string
-  }
+    color: null | string,
+  },
 };
 
 class AddProductPage extends Component<
@@ -67,7 +75,7 @@ class AddProductPage extends Component<
         color: "",
         quantity: "",
         storeLocation: "",
-        margin: "10"
+        margin: "10",
       },
       errors: {
         productName: null,
@@ -75,8 +83,8 @@ class AddProductPage extends Component<
         price: null,
         quantity: null,
         supplierCode: null,
-        color: null
-      }
+        color: null,
+      },
     };
     // $FlowFixMe
     this.resetProduct = this.resetProduct.bind(this);
@@ -93,6 +101,8 @@ class AddProductPage extends Component<
   }
 
   componentDidMount() {
+    this.props.getSuppliers({ ...filters });
+    this.props.initializeProduct();
     let productService = serviceManager.get("ProductService");
 
     productService.getNewProductCode().then(({ success, orderNumber }) => {
@@ -100,8 +110,8 @@ class AddProductPage extends Component<
         this.setState(({ form }) => ({
           form: {
             ...form,
-            productCode: orderNumber
-          }
+            productCode: orderNumber,
+          },
         }));
       }
     });
@@ -111,7 +121,7 @@ class AddProductPage extends Component<
     this.resetFormErrors();
 
     const {
-      form: { productName, size, price, quantity, color }
+      form: { productName, size, price, quantity, color },
     } = this.state;
 
     let hasError = false;
@@ -124,6 +134,9 @@ class AddProductPage extends Component<
     if (size === "") {
       this.setFormErrors("size", "Size is required.");
       hasError = true;
+    } else if (/\D/.test(size)) {
+      this.setFormErrors("size", "Size is invalid.");
+      hasError = true;
     }
 
     if (color === "") {
@@ -134,10 +147,16 @@ class AddProductPage extends Component<
     if (price === "") {
       this.setFormErrors("price", "Price is required.");
       hasError = true;
+    } else if (isNaN(price)) {
+      this.setFormErrors("price", "Price is invalid.");
+      hasError = true;
     }
 
     if (quantity === "") {
       this.setFormErrors("quantity", "Quantity is required.");
+      hasError = true;
+    } else if (/\D/.test(quantity)) {
+      this.setFormErrors("quantity", "Quantity is invalid.");
       hasError = true;
     }
 
@@ -152,8 +171,8 @@ class AddProductPage extends Component<
         size: null,
         price: null,
         quantity: null,
-        color: null
-      }
+        color: null,
+      },
     });
   }
 
@@ -162,8 +181,8 @@ class AddProductPage extends Component<
       return {
         errors: {
           ...errors,
-          [field]: message
-        }
+          [field]: message,
+        },
       };
     });
   }
@@ -173,13 +192,14 @@ class AddProductPage extends Component<
       form: {
         ...form,
         productName: "",
+        supplierCode: "",
         size: "",
         price: "",
         quantity: "",
         storeLocation: "",
         color: "",
-        margin: "100"
-      }
+        margin: "100",
+      },
     }));
   }
 
@@ -187,8 +207,8 @@ class AddProductPage extends Component<
     this.setState(({ form }) => ({
       form: {
         ...form,
-        ...value
-      }
+        ...value,
+      },
     }));
   }
 
@@ -201,7 +221,7 @@ class AddProductPage extends Component<
   }
 
   render() {
-    const { status, notification } = this.props;
+    const { status, notification, supplierStatus, suppliers } = this.props;
     const {
       form: {
         productCode,
@@ -211,10 +231,16 @@ class AddProductPage extends Component<
         quantity,
         storeLocation,
         supplierCode,
-        color
+        color,
       },
-      errors
+      errors,
     } = this.state;
+
+    const supplierOptions =
+      suppliers.length > 0
+        ? [...suppliers.map(({ supplierCode }) => supplierCode)]
+        : [];
+
     return (
       <Layout
         breadcrumbs={["Add New Product"]}
@@ -236,7 +262,8 @@ class AddProductPage extends Component<
         {notification && (
           <Alert type={notification.type}>{notification.message}</Alert>
         )}
-        {status === ASYNC_STATUS.LOADING ? (
+        {status === ASYNC_STATUS.LOADING ||
+        supplierStatus === ASYNC_STATUS.LOADING ? (
           <Loader isLoading />
         ) : (
           <div className="add-product">
@@ -263,7 +290,7 @@ class AddProductPage extends Component<
                       <Input
                         id="productName"
                         text={productName}
-                        onChange={productName =>
+                        onChange={(productName) =>
                           this.onChangeFormField({ productName })
                         }
                         error={errors.productName}
@@ -279,10 +306,12 @@ class AddProductPage extends Component<
                       Supplier Code
                     </Col>
                     <Col sm={12} md={6}>
-                      <Input
+                      <Select
                         id="supplierCode"
-                        text={supplierCode}
-                        onChange={supplierCode =>
+                        options={supplierOptions}
+                        placeholder="Select"
+                        selected={supplierCode}
+                        onChange={(supplierCode) =>
                           this.onChangeFormField({ supplierCode })
                         }
                         error={errors.supplierCode}
@@ -300,8 +329,9 @@ class AddProductPage extends Component<
                     <Col sm={12} md={6}>
                       <Input
                         id="size"
+                        type="number"
                         text={size}
-                        onChange={size => this.onChangeFormField({ size })}
+                        onChange={(size) => this.onChangeFormField({ size })}
                         error={errors.size}
                       />
                     </Col>
@@ -318,7 +348,7 @@ class AddProductPage extends Component<
                       <Input
                         id="price"
                         text={price}
-                        onChange={price => this.onChangeFormField({ price })}
+                        onChange={(price) => this.onChangeFormField({ price })}
                         error={errors.price}
                       />
                     </Col>
@@ -335,7 +365,7 @@ class AddProductPage extends Component<
                       <Input
                         id="color"
                         text={color}
-                        onChange={color => this.onChangeFormField({ color })}
+                        onChange={(color) => this.onChangeFormField({ color })}
                         error={errors.color}
                       />
                     </Col>
@@ -352,7 +382,8 @@ class AddProductPage extends Component<
                       <Input
                         id="quantity"
                         text={quantity}
-                        onChange={quantity =>
+                        type="number"
+                        onChange={(quantity) =>
                           this.onChangeFormField({ quantity })
                         }
                         error={errors.quantity}
@@ -371,7 +402,7 @@ class AddProductPage extends Component<
                       <Input
                         id="storeLocation"
                         text={storeLocation}
-                        onChange={storeLocation =>
+                        onChange={(storeLocation) =>
                           this.onChangeFormField({ storeLocation })
                         }
                       />
@@ -390,12 +421,17 @@ class AddProductPage extends Component<
 function mapStateToProps(state) {
   return {
     status: state.product.status,
-    notification: state.product.notification
+    notification: state.product.notification,
+    supplierStatus: state.supplier.status,
+    supplierNotification: state.supplier.notification,
+    suppliers: state.supplier.suppliers,
   };
 }
 
 const Actions = {
-  addProduct
+  addProduct,
+  getSuppliers,
+  initializeProduct,
 };
 
 export default connect(mapStateToProps, Actions)(AddProductPage);

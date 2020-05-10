@@ -3,7 +3,7 @@ import React, { Component, Fragment } from "react";
 import { connect } from "react-redux";
 import {
   type AsyncStatusType,
-  type NotificationType
+  type NotificationType,
 } from "shared/types/General";
 
 import Layout from "components/adminLayout";
@@ -11,34 +11,38 @@ import Button from "components/button";
 import Row from "components/Row";
 import Col from "components/Col";
 import Input from "components/Input";
+import Alert from "components/Alert";
+import Loader from "components/loader";
+import { confirmAlert } from "react-confirm-alert";
+import "react-confirm-alert/src/react-confirm-alert.css";
+import ReactHTMLTableToExcel from "react-html-table-to-excel";
 
 import { ASYNC_STATUS } from "constants/async";
-import { getLeaves, deleteLeave } from "action/leave";
+import { getLeaves, deleteLeave, initializeLeave } from "action/leave";
 import { filters } from "constants/user";
 
 import "./styles.scss";
-import Alert from "components/Alert";
-import Loader from "components/loader";
 
 type AdminViewLeavesPageProps = {
   getLeaves: Function,
   deleteLeave: Function,
+  initializeLeave: Function,
   status: AsyncStatusType,
   notification: NotificationType,
-  leaves: Array<any>
+  leaves: Array<any>,
 };
 
 type AdminViewLeavesPageState = {
   filters: {
     employeeId: string,
     from: string,
-    to: string
+    to: string,
   },
   errors: {
     employeeId: null | string,
     from: null | string,
-    to: null | string
-  }
+    to: null | string,
+  },
 };
 
 class AdminViewLeavesPage extends Component<
@@ -52,15 +56,16 @@ class AdminViewLeavesPage extends Component<
       filters: {
         employeeId: "",
         from: "",
-        to: ""
+        to: "",
       },
       errors: {
         employeeId: null,
         from: null,
-        to: null
-      }
+        to: null,
+      },
     };
-
+    // $FlowFixMe
+    this.confirmationMessage = this.confirmationMessage.bind(this);
     // $FlowFixMe
     this.onChangeFilterField = this.onChangeFilterField.bind(this);
     // $FlowFixMe
@@ -71,11 +76,34 @@ class AdminViewLeavesPage extends Component<
     this.searchLeaves = this.searchLeaves.bind(this);
   }
 
+  confirmationMessage(leaveId) {
+    confirmAlert({
+      title: "Confirm",
+      message: "Are you sure to delete this?",
+      buttons: [
+        {
+          label: "Yes",
+          onClick: () => {
+            this.deleteLeave(leaveId);
+          },
+        },
+        {
+          label: "No",
+          onClick: () => {},
+        },
+      ],
+    });
+  }
+
+  componentDidMount() {
+    this.props.initializeLeave();
+  }
+
   validateForm() {
     this.resetFormErrors();
 
     const {
-      filters: { employeeId, from, to }
+      filters: { employeeId, from, to },
     } = this.state;
 
     let hasError = false;
@@ -104,8 +132,8 @@ class AdminViewLeavesPage extends Component<
       errors: {
         reason: null,
         from: null,
-        to: null
-      }
+        to: null,
+      },
     });
   }
 
@@ -114,8 +142,8 @@ class AdminViewLeavesPage extends Component<
       return {
         errors: {
           ...errors,
-          [field]: message
-        }
+          [field]: message,
+        },
       };
     });
   }
@@ -124,8 +152,8 @@ class AdminViewLeavesPage extends Component<
     this.setState(({ filters }) => ({
       filters: {
         ...filters,
-        ...value
-      }
+        ...value,
+      },
     }));
   }
 
@@ -150,15 +178,15 @@ class AdminViewLeavesPage extends Component<
         ...filters,
         employeeId: "",
         from: "",
-        to: ""
-      }
+        to: "",
+      },
     }));
   }
 
   render() {
     const {
       filters: { employeeId, from: start, to },
-      errors
+      errors,
     } = this.state;
 
     const { leaves, status, notification } = this.props;
@@ -168,6 +196,16 @@ class AdminViewLeavesPage extends Component<
         breadcrumbs={["View Leaves"]}
         actions={
           <Fragment>
+            {leaves.length > 0 && (
+              <ReactHTMLTableToExcel
+                id="test-table-xls-button"
+                className="download-table-xls-button"
+                table="dataTable"
+                filename="Leave Report"
+                sheet="leave_report"
+                buttonText="Generate Report"
+              />
+            )}
             <Button type={Button.TYPE.DANGER} onClick={this.resetLeaveFilter}>
               Reset
             </Button>
@@ -195,7 +233,7 @@ class AdminViewLeavesPage extends Component<
                       <Input
                         id="employeeId"
                         text={employeeId}
-                        onChange={employeeId =>
+                        onChange={(employeeId) =>
                           this.onChangeFilterField({ employeeId })
                         }
                         error={errors.employeeId}
@@ -213,7 +251,7 @@ class AdminViewLeavesPage extends Component<
                         id="to"
                         type="date"
                         text={start}
-                        onChange={from => this.onChangeFilterField({ from })}
+                        onChange={(from) => this.onChangeFilterField({ from })}
                         error={errors.from}
                       />
                     </Col>
@@ -229,7 +267,7 @@ class AdminViewLeavesPage extends Component<
                         id="to"
                         type="date"
                         text={to}
-                        onChange={to => this.onChangeFilterField({ to })}
+                        onChange={(to) => this.onChangeFilterField({ to })}
                         error={errors.to}
                       />
                     </Col>
@@ -239,7 +277,7 @@ class AdminViewLeavesPage extends Component<
             </div>
             <div className="table-container">
               <div className="table-section">
-                <table>
+                <table id="dataTable">
                   <tbody>
                     <tr className="table-heading">
                       <th>Employee Id</th>
@@ -261,7 +299,9 @@ class AdminViewLeavesPage extends Component<
                             <td>
                               <Button
                                 type={Button.TYPE.DANGER}
-                                onClick={() => this.deleteLeave(leave._id)}
+                                onClick={() =>
+                                  this.confirmationMessage(leave._id)
+                                }
                               >
                                 Delete
                               </Button>
@@ -284,13 +324,14 @@ function mapStateToProps(state) {
   return {
     status: state.leave.status,
     notification: state.leave.notification,
-    leaves: state.leave.leaves
+    leaves: state.leave.leaves,
   };
 }
 
 const Actions = {
   getLeaves,
-  deleteLeave
+  deleteLeave,
+  initializeLeave,
 };
 
 export default connect(mapStateToProps, Actions)(AdminViewLeavesPage);

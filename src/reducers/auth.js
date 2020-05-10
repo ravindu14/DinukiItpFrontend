@@ -2,7 +2,7 @@
 import { type Action } from "shared/types/ReducerAction";
 import {
   type AsyncStatusType,
-  type NotificationType
+  type NotificationType,
 } from "shared/types/General";
 
 import { USER_ROLES } from "constants/user";
@@ -12,7 +12,7 @@ import {
   HANDLE_NOTIFICATION,
   AUTH_SIGN_IN_SUCCESS,
   AUTH_SIGN_OUT_SUCCESS,
-  AUTH_AUTHENTICATION_FAILURE
+  AUTH_AUTHENTICATION_FAILURE,
 } from "actionTypes/auth";
 
 export type AuthStateType = {
@@ -22,7 +22,7 @@ export type AuthStateType = {
   isUserInitiated: boolean,
   role: null | typeof USER_ROLES.ADMIN,
   isAuthSuccess: boolean,
-  user: null | Object
+  user: null | Object,
 };
 
 const initialState: AuthStateType = {
@@ -32,7 +32,7 @@ const initialState: AuthStateType = {
   isUserInitiated: true,
   role: USER_ROLES.ADMIN,
   isAuthSuccess: true,
-  user: null
+  user: null,
 };
 
 function userInitiatedSuccess(state) {
@@ -46,7 +46,7 @@ function asyncAuthInit(state: AuthStateType) {
     notification: null,
     isAuthSuccess: false,
     isEmailSent: false,
-    isPasswordReset: false
+    isPasswordReset: false,
   };
 }
 
@@ -54,7 +54,7 @@ function handleNotification(state: AuthStateType, { isSuccess, notification }) {
   return {
     ...state,
     notification,
-    status: isSuccess ? ASYNC_STATUS.SUCCESS : ASYNC_STATUS.FAILURE
+    status: isSuccess ? ASYNC_STATUS.SUCCESS : ASYNC_STATUS.FAILURE,
   };
 }
 
@@ -75,7 +75,7 @@ export default (
         isAuthenticated: true,
         isAuthSuccess: true,
         user: payload,
-        status: ASYNC_STATUS.SUCCESS
+        status: ASYNC_STATUS.SUCCESS,
       };
     case AUTH_SIGN_OUT_SUCCESS:
       return {
@@ -84,12 +84,13 @@ export default (
         isAuthSuccess: false,
         user: null,
         notification: null,
-        status: ASYNC_STATUS.SUCCESS
+        status: ASYNC_STATUS.SUCCESS,
       };
     case AUTH_AUTHENTICATION_FAILURE:
       return {
         ...state,
-        isAuthenticated: false
+        isAuthenticated: false,
+        status: ASYNC_STATUS.FAILURE,
       };
     default:
       return state;

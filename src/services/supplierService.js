@@ -18,6 +18,14 @@ export class SupplierService {
     return this.api.post(this.endpoint, payload);
   }
 
+  updateSupplier(payload: Object) {
+    return this.api.put(this.endpoint, payload);
+  }
+
+  getSupplier(supplierCode: string) {
+    return this.api.get(`${this.endpoint}/${supplierCode}`);
+  }
+
   getSuppliers(filters: Object) {
     return this.api.get(this.endpoint, filters);
   }

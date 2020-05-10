@@ -3,39 +3,40 @@ import React, { Component, Fragment } from "react";
 import { connect } from "react-redux";
 import {
   type AsyncStatusType,
-  type NotificationType
+  type NotificationType,
 } from "shared/types/General";
 
 import Layout from "components/inventoryLayout";
 import Button from "components/button";
-import Row from "components/Row";
-import Col from "components/Col";
-import Input from "components/Input";
 import Loader from "components/loader";
 import Alert from "components/Alert";
+import ReactHTMLTableToExcel from "react-html-table-to-excel";
+import { confirmAlert } from "react-confirm-alert";
+import "react-confirm-alert/src/react-confirm-alert.css";
 
 import {
   getCustomerReturns,
-  deleteCustomerReturn
+  deleteCustomerReturn,
 } from "action/customerReturn";
 import { ASYNC_STATUS } from "constants/async";
 import { filters } from "constants/user";
 
 import "./styles.scss";
+import { Link } from "react-router-dom";
 
 type ViewStockReturnsPageProps = {
   getCustomerReturns: Function,
   deleteCustomerReturn: Function,
   status: AsyncStatusType,
   notification: NotificationType,
-  customerReturns: Array<any>
+  customerReturns: Array<any>,
 };
 
 type ViewStockReturnsPageState = {
   filters: {
     returnId: string,
-    date: string
-  }
+    date: string,
+  },
 };
 
 class ViewStockReturnsPage extends Component<
@@ -45,15 +46,8 @@ class ViewStockReturnsPage extends Component<
   constructor(props) {
     super(props);
 
-    this.state = {
-      filters: {
-        returnId: "",
-        date: ""
-      }
-    };
-
     // $FlowFixMe
-    this.onChangeFilterField = this.onChangeFilterField.bind(this);
+    this.confirmationMessage = this.confirmationMessage.bind(this);
     // $FlowFixMe
     this.resetReturnFilter = this.resetReturnFilter.bind(this);
     // $FlowFixMe
@@ -69,18 +63,28 @@ class ViewStockReturnsPage extends Component<
       filters: {
         ...filters,
         returnId: "",
-        date: ""
-      }
+        date: "",
+      },
     }));
   }
 
-  onChangeFilterField(value) {
-    this.setState(({ filters }) => ({
-      filters: {
-        ...filters,
-        ...value
-      }
-    }));
+  confirmationMessage(returnId) {
+    confirmAlert({
+      title: "Confirm",
+      message: "Are you sure to delete this?",
+      buttons: [
+        {
+          label: "Yes",
+          onClick: () => {
+            this.deleteCustomerReturn(returnId);
+          },
+        },
+        {
+          label: "No",
+          onClick: () => {},
+        },
+      ],
+    });
   }
 
   deleteCustomerReturn(returnId) {
@@ -88,10 +92,6 @@ class ViewStockReturnsPage extends Component<
   }
 
   render() {
-    const {
-      filters: { returnId, date }
-    } = this.state;
-
     const { status, notification, customerReturns } = this.props;
 
     return (
@@ -99,9 +99,14 @@ class ViewStockReturnsPage extends Component<
         breadcrumbs={["View Returns"]}
         actions={
           <Fragment>
-            <Button type={Button.TYPE.SUCCESS} onClick={() => {}}>
-              Search
-            </Button>
+            <ReactHTMLTableToExcel
+              id="test-table-xls-button"
+              className="download-table-xls-button"
+              table="dataTable"
+              filename="Stock Return Report"
+              sheet="stock_return_report"
+              buttonText="Generate Report"
+            />
           </Fragment>
         }
       >
@@ -112,44 +117,9 @@ class ViewStockReturnsPage extends Component<
           <Loader isLoading />
         ) : (
           <div className="view-returns">
-            <div className="filter-container">
-              <Row>
-                <Col size="3">
-                  <Row>
-                    <Col className="field-label" sm={12} md={6}>
-                      Return Id
-                    </Col>
-                    <Col sm={12} md={6}>
-                      <Input
-                        id="returnId"
-                        text={returnId}
-                        onChange={returnId =>
-                          this.onChangeFilterField({ returnId })
-                        }
-                      />
-                    </Col>
-                  </Row>
-                </Col>
-                <Col size="3">
-                  <Row>
-                    <Col className="field-label" sm={12} md={6}>
-                      Date
-                    </Col>
-                    <Col sm={12} md={6}>
-                      <Input
-                        id="date"
-                        type="date"
-                        text={date}
-                        onChange={date => this.onChangeFilterField({ date })}
-                      />
-                    </Col>
-                  </Row>
-                </Col>
-              </Row>
-            </div>
             <div className="table-container">
               <div className="table-section">
-                <table>
+                <table id="dataTable">
                   <tbody>
                     <tr className="table-heading">
                       <th>Return Id</th>
@@ -162,10 +132,16 @@ class ViewStockReturnsPage extends Component<
                       <th>Action</th>
                     </tr>
                     {customerReturns.length > 0 &&
-                      customerReturns.map(customerReturn => {
+                      customerReturns.map((customerReturn) => {
                         return (
                           <tr key={customerReturn.returnId}>
-                            <td>{customerReturn.returnId}</td>
+                            <td>
+                              <Link
+                                to={`/return/update/${customerReturn.returnId}`}
+                              >
+                                {customerReturn.returnId}
+                              </Link>
+                            </td>
                             <td>{customerReturn.productCode}</td>
                             <td>{customerReturn.ProductName}</td>
                             <td>{customerReturn.color}</td>
@@ -176,7 +152,7 @@ class ViewStockReturnsPage extends Component<
                               <Button
                                 type={Button.TYPE.DANGER}
                                 onClick={() =>
-                                  this.deleteCustomerReturn(
+                                  this.confirmationMessage(
                                     customerReturn.returnId
                                   )
                                 }
@@ -202,13 +178,13 @@ function mapStateToProps(state) {
   return {
     status: state.customerReturn.status,
     notification: state.customerReturn.notification,
-    customerReturns: state.customerReturn.customerReturns
+    customerReturns: state.customerReturn.customerReturns,
   };
 }
 
 const Actions = {
   getCustomerReturns,
-  deleteCustomerReturn
+  deleteCustomerReturn,
 };
 
 export default connect(mapStateToProps, Actions)(ViewStockReturnsPage);
