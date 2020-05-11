@@ -12,8 +12,8 @@ import "./index.scss";
 
 const settings = {
   api: {
-    baseUrl: "http://localhost:8080/api"
-  }
+    baseUrl: "http://localhost:8080/api",
+  },
 };
 
 registerServices(settings);
@@ -21,13 +21,6 @@ registerServices(settings);
 const store = configureStore({}, serviceManager);
 
 store.dispatch(isUserAuthenticated());
-
-ReactDOM.render(
-  <Provider store={store}>
-    <Routes />
-  </Provider>,
-  document.getElementById("root")
-);
 
 // If you want your app to work offline and load faster, you can change
 // unregister() to register() below. Note this comes with some pitfalls.
