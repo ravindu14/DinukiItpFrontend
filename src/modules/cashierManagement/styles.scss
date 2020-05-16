@@ -98,3 +98,23 @@
     }
   }
 }
+
+.download-table-xls-button {
+  cursor: pointer;
+  position: relative;
+  border-radius: 5px;
+  border: 2px solid transparent;
+  text-decoration: none;
+  display: inline-block;
+  font-weight: 500;
+  letter-spacing: 1px;
+  text-align: center;
+  line-height: 1;
+  box-shadow: 0 0 black;
+  padding: 10px 30px;
+  font-size: 10px;
+  background: #a7a7a7;
+  border-color: #a7a7a7;
+  color: #ffffff;
+  margin-left: 5px;
+}

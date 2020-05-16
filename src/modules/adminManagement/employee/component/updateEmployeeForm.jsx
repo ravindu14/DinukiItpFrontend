@@ -228,7 +228,7 @@ class AdminUpdateEmployeePage extends Component<
 
     return (
       <Layout
-        breadcrumbs={["Add New Employee"]}
+        breadcrumbs={["Update Employee"]}
         actions={
           <Fragment>
             <Button type={Button.TYPE.DANGER} onClick={this.resetEmployee}>
