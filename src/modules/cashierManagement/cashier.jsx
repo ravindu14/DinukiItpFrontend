@@ -756,7 +756,7 @@ class CashierPage extends Component<
                                           <td>{product.price}</td>
                                           <td>{product.sellQty}</td>
                                           <td>{product.discount}</td>
-                                          <td>{product.discount}</td>
+                                          <td>{product.lineTotal}</td>
                                           <td>
                                             <Button
                                               type={Button.TYPE.DANGER}
