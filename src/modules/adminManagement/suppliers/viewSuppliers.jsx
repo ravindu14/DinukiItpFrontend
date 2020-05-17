@@ -125,7 +125,7 @@ class AdminViewSupplierPage extends Component<
                             </td>
                             <td>{supplier.supplierName}</td>
                             <td>{supplier.contactNumber}</td>
-                            <td>{supplier.contactNumber}</td>
+                            <td>{supplier.address}</td>
                             <td>
                               <Button
                                 type={Button.TYPE.DANGER}
