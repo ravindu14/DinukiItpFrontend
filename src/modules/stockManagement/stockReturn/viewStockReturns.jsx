@@ -128,6 +128,7 @@ class ViewStockReturnsPage extends Component<
                       <th>Color</th>
                       <th>Size</th>
                       <th>Date</th>
+                      <th>Return Qty</th>
                       <th>Reason</th>
                       <th>Action</th>
                     </tr>
@@ -147,6 +148,7 @@ class ViewStockReturnsPage extends Component<
                             <td>{customerReturn.color}</td>
                             <td>{customerReturn.size}</td>
                             <td>{customerReturn.date}</td>
+                            <td>{customerReturn.quantity}</td>
                             <td>{customerReturn.reason}</td>
                             <td>
                               <Button
